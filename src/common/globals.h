@@ -107,9 +107,10 @@
 #	define TCLOCK_SUFFIX L" x64"
 #endif // _WIN64
 
-#define ABT_TITLE L"T-Clock Redux" TCLOCK_SUFFIX L" - " L(VER_SHORT_DOTS) L" build " L(STR(VER_REVISION))
-#define ABT_TCLOCK L"T-Clock 2010 is Stoic Joker's rewrite of their code which allows it to run on Windows XP and up. While he removed some of T-Clock's previous functionality. He felt this makes it a more \"Administrator Friendly\" application as it no longer required elevated privileges to run.\n\nT-Clock Redux tries to continue Stoic Joker's efforts."
-#define CONF_START L"T-Clock Redux" TCLOCK_SUFFIX
+#define ABT_TITLE L"T-Clock-ng" TCLOCK_SUFFIX L" - " L(VER_SHORT_DOTS) L" build " L(STR(VER_REVISION))
+#define ABT_TCLOCK L"T-Clock 2010 is Stoic Joker's rewrite of their code which allows it to run on Windows XP and up. While he removed some of T-Clock's previous functionality. He felt this makes it a more \"Administrator Friendly\" application as it no longer required elevated privileges to run.\n\nT-Clock-ng continues White-Tiger's T-Clock Redux on Windows 11."
+#define CONF_START L"T-Clock-ng" TCLOCK_SUFFIX ///< startup shortcut name
+#define CONF_START_REDUX L"T-Clock Redux" TCLOCK_SUFFIX ///< startup shortcut name before T-Clock-ng (migrated)
 #define CONF_START_OLD L"Stoic Joker's T-Clock 2010" TCLOCK_SUFFIX
 
 #define TC_TOOLTIP L"\"T-Clock\"\\nLDATE"
@@ -150,7 +151,15 @@ enum{ // Drop&File enum / registry settings
 #define CLOCKM_REFRESHCLOCKPREVIEW        (WM_USER+7)
 #define CLOCKM_REFRESHCLOCKPREVIEWFORMAT  (WM_USER+8)
 #define CLOCKM_BLINKOFF                   (WM_USER+9)
+#define CLOCKM_OVERLAY_RECT               (WM_USER+10) /**< overlay: original clock rect; wParam = MAKELONG(left,top), lParam = MAKELONG(width,height) (physical screen coordinates) */
+#define CLOCKM_OVERLAY_BG                 (WM_USER+11) /**< overlay: sampled taskbar background; wParam = COLORREF, lParam = valid */
 #define CLOCKM_LOGGING_CLEANUP            (WM_USER+666)
+
+/** window class of our own clock window used on taskbars without \c TrayClockWClass (Windows 11 XAML taskbar)
+ * \remarks drawn as a layered window on top of the original clock */
+#define TCLOCK_OVERLAY_CLASS L"TClockOverlayWClass"
+/** "Taskbar" setting: 0 = auto (overlay if no classic clock found), 1 = always use overlay, -1 = never */
+#define OVERLAY_SETTING L"Win11Overlay"
 
 // Global Buffer Size Labels
 #define TNY_BUFF	32

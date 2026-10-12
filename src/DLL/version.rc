@@ -48,11 +48,11 @@ BEGIN
         BEGIN
             VALUE "Comments", "T-Clock tray-""Hook"""
             VALUE "CompanyName", "-"
-            VALUE "FileDescription", "T-Clock Redux DLL"
+            VALUE "FileDescription", "T-Clock-ng DLL"
             VALUE "FileVersion", VER_SHORT " #" STR(VER_REVISION)
             VALUE "InternalName", "Clock.dll"
             VALUE "OriginalFilename", "Clock.dll"
-            VALUE "ProductName", "T-Clock Redux"
+            VALUE "ProductName", "T-Clock-ng"
             VALUE "ProductVersion", VER_SHORT "#" STR(VER_REVISION)
         END
     END

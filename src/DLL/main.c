@@ -6,6 +6,7 @@
 
 HANDLE g_exit_lock = NULL;
 void InitClock(HWND hwnd);
+HWND CreateOverlayClock(HWND taskbar); // tclock.c
 
 //========================================================================================
 //-----------------------------+++--> Entry Point of This (SystemTray Clock ShellHook) DLL:
@@ -38,9 +39,24 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)   /
 LRESULT CALLBACK Hook_CallWndProc(int nCode, WPARAM wParam, LPARAM lParam)   //-----+++-->
 {/// @todo : rewrite hooking code (use wrapper exe to hook it)
 	CWPSTRUCT* pcwps = (CWPSTRUCT*)lParam;
-	if(nCode >= 0) { // if this message is sent to the clock
+	if(nCode >= 0 && !gs_taskbar) { // if this message is sent to the clock
 		char classname[80];
-		if(!gs_taskbar && GetClassNameA(pcwps->hwnd, classname, 80) && !strcmp(classname, "TrayClockWClass")) {
+		if(gs_overlay_bar) { // no classic clock, create our own on the taskbar's thread
+			static char s_creating = 0;
+			if(pcwps->hwnd == gs_overlay_bar && !s_creating) {
+				HWND clock;
+				s_creating = 1;
+				clock = CreateOverlayClock(gs_overlay_bar);
+				if(clock) {
+					InitClock(clock);
+					PostMessage(gs_hwndTClockMain,MAINM_CLOCKINIT,0,(LPARAM)clock);
+				} else {
+					DebugLog(0, "overlay clock creation failed (%lu)", GetLastError());
+					gs_overlay_bar = NULL; // don't retry on every message
+				}
+				s_creating = 0;
+			}
+		} else if(GetClassNameA(pcwps->hwnd, classname, 80) && !strcmp(classname, "TrayClockWClass")) {
 			InitClock(pcwps->hwnd); // initialize (tclock.c)
 			PostMessage(gs_hwndTClockMain,MAINM_CLOCKINIT,0,(LPARAM)pcwps->hwnd);
 		}

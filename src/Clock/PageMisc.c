@@ -208,7 +208,7 @@ static void OnInit(HWND hDlg)   //----------------------------------------------
 		for(iter=GROUP_CALENDAR; iter<=GROUP_CALENDAR_END; ++iter) EnableDlgItem(hDlg,iter,0);
 		CheckDlgButton(hDlg,IDCB_USECALENDAR, 0);
 	}else CheckDlgButton(hDlg,IDCB_USECALENDAR, 1);
-	if(api.OS >= TOS_WIN10){
+	if(api.OS >= TOS_WIN10 && api.OS < TOS_WIN11){ // no effect on Windows 11
 		int old_calendar = api.GetSystemInt(HKEY_LOCAL_MACHINE, kSectionImmersiveShell, kKeyWin32Tray, 0);
 		CheckDlgButton(hDlg, IDC_OLDCALENDAR, old_calendar);
 	}else
@@ -299,7 +299,7 @@ void OnApply(HWND hDlg)   //----------------------------------------------------
 			UnregisterSession(g_hwndTClockMain);
 		}
 	}
-	if(api.OS >= TOS_WIN10){
+	if(api.OS >= TOS_WIN10 && api.OS < TOS_WIN11){ // no effect on Windows 11
 		int old_calendar = api.GetSystemInt(HKEY_LOCAL_MACHINE, kSectionImmersiveShell, kKeyWin32Tray, 0);
 		if((int)IsDlgButtonChecked(hDlg, IDC_OLDCALENDAR) != old_calendar){
 			wchar_t param[5] = L"/Wc0";

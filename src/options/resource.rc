@@ -65,7 +65,7 @@ VS_VERSION_INFO VERSIONINFO
             VALUE "FileVersion", VER_SHORT " #" STR(VER_REVISION)
             VALUE "InternalName", "Options.exe"
             VALUE "OriginalFilename", "Options.exe"
-            VALUE "ProductName", "T-Clock Redux"
+            VALUE "ProductName", "T-Clock-ng"
             VALUE "ProductVersion", VER_SHORT " #" STR(VER_REVISION)
         }
     }

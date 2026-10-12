@@ -19,6 +19,7 @@ SHARED HWND gs_hwndClock = NULL;
 SHARED HWND gs_tray = NULL;
 SHARED HWND gs_taskbar = NULL;
 SHARED HWND gs_hwndCalendar = NULL;
+SHARED HWND gs_overlay_bar = NULL;
 SHARED unsigned short gs_tos = 0;
 #ifndef __GNUC__
 #	pragma data_seg()
@@ -205,7 +206,9 @@ DLL_EXPORT int SetupClockAPI(int version, TClockAPI* _api){
 				}
 				break;
 			case 10: // Win 10 (newer versions)
-				if(osvi.dwBuildNumber >= 15063) // Creators Update (v1703)
+				if(osvi.dwBuildNumber >= 22000) // Windows 11 (still reports itself as 10.0)
+					gs_tos = TOS_WIN11;
+				else if(osvi.dwBuildNumber >= 15063) // Creators Update (v1703)
 					gs_tos = TOS_WIN10_2;
 				else if(osvi.dwBuildNumber >= 14291) // Anniversary Update (v1607); first build: 11082, breaking build (likely): 14291
 					gs_tos = TOS_WIN10_1;
@@ -300,11 +303,22 @@ DLL_EXPORT int SetupClockAPI(int version, TClockAPI* _api){
 	return 0;
 }
 
+/**
+ * \brief checks whether a classic, usable clock (\c TrayClockWClass) exists
+ * \return boolean */
+static int HasClassicClock(HWND hwndClock) {
+	RECT rc;
+	if(!hwndClock || !IsWindowVisible(hwndClock))
+		return 0;
+	GetWindowRect(hwndClock, &rc);
+	return (rc.right > rc.left && rc.bottom > rc.top);
+}
 int Clock_Inject(HWND hwnd)
 {
 	HWND hwndBar, hwndClock;
 	DWORD dwThreadId;
-	
+	int overlay;
+
 	hwndClock = Clock_GetClock(1);
 	gs_hwndTClockMain = hwnd;
 	if(gs_hwndClock && IsWindow(gs_hwndClock) && gs_hwndClock==hwndClock){
@@ -313,11 +327,21 @@ int Clock_Inject(HWND hwnd)
 		return -1; // already hooked / old instance
 	}
 	gs_taskbar = gs_tray = gs_hwndClock = NULL;
-	
+	gs_overlay_bar = NULL;
+
 	// find the taskbar
 	hwndBar = FindWindowA("Shell_TrayWnd", NULL);
 	if(!hwndBar)
 		return 1;
+
+	// Windows 11's XAML taskbar has no classic clock window; use our own overlay clock instead
+	overlay = Clock_GetInt(L"Taskbar", OVERLAY_SETTING, 0);
+	if(overlay > 0 || (!overlay && gs_tos >= TOS_WIN11 && !HasClassicClock(hwndClock))) {
+		gs_overlay_bar = hwndBar;
+		hwndClock = hwndBar; // used below to trigger our hook
+	} else if(!hwndClock) {
+		return 1; // taskbar (clock) not ready yet, retry
+	}
 	
 	// get thread ID of taskbar (explorer) - Specal thanks to T.Iwata.
 	dwThreadId = GetWindowThreadProcessId(hwndBar, NULL);
@@ -332,10 +356,15 @@ int Clock_Inject(HWND hwnd)
 	if(!m_hhook)
 		return 3;
 	
+	if(gs_overlay_bar) {
+		// our hook creates the overlay clock once it sees a message for the taskbar
+		SendMessage(hwndBar, WM_NULL, 0, 0);
+		return 0;
+	}
 	gs_hwndClock = hwndClock;
 	// refresh the taskbar
 	PostMessage(hwndBar, WM_SIZE, SIZE_RESTORED, 0);
-	
+
 	SendMessage(hwndClock, WM_NULL, 0, 0);
 	return 0;
 }
@@ -363,4 +392,5 @@ void Clock_Exit()
 		
 		gs_taskbar = gs_tray = gs_hwndClock = NULL;
 	}
+	gs_overlay_bar = NULL;
 }

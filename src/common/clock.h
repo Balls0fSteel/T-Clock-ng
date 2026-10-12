@@ -44,6 +44,7 @@ enum TOS {
 	TOS_WIN10	=0x0080, /**< didn't add anything new to T-Clock yet \sa TClockAPI::OS */
 	TOS_WIN10_1	=0x0100 | TOS_WIN10, /**< Anniversary Update; broke T-Clock entirely (#39) \sa TClockAPI::OS */
 	TOS_WIN10_2	=0x0200 | TOS_WIN10_1, /**< Creators Update; partially broke multi-monitor clocks (#126) \sa TClockAPI::OS */
+	TOS_WIN11	=0x0400 | TOS_WIN10_2, /**< Windows 11 (build 22000+); XAML taskbar without \c TrayClockWClass (unless restored by 3rd party tools) \sa TClockAPI::OS */
 	TOS_NEWER	=0x8000, /**< in case we're "outdated" and the curent OS is newer than our known ones \sa TClockAPI::OS */
 };
 
@@ -52,7 +53,7 @@ struct TClockAPI {
 	HINSTANCE hInstance; /**< handle to T-Clock.dll */
 /**
  * \brief holds current OS version flags
- * \sa TOS, TOS_2000, TOS_XP, TOS_XP_64, TOS_VISTA, TOS_WIN7, TOS_WIN8, TOS_WIN8_1, TOS_WIN10, TOS_WIN10_1, TOS_NEWER, TOS_OLDER */
+ * \sa TOS, TOS_2000, TOS_XP, TOS_XP_64, TOS_VISTA, TOS_WIN7, TOS_WIN8, TOS_WIN8_1, TOS_WIN10, TOS_WIN10_1, TOS_WIN10_2, TOS_WIN11, TOS_NEWER, TOS_OLDER */
 	unsigned short OS;
 	unsigned short desktop_button_size; /**< size of the "show desktop" button (W7- 10px ?, W8 8px, W10 4+1px) */
 	const wchar_t* root; /**< our root folder path w/o ending slash */

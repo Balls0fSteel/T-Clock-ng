@@ -7,7 +7,6 @@
 #include "../common/version.h"
 static void OnInit(HWND hDlg);
 static void OnApply(HWND hDlg);
-static void OnLinkClicked(HWND hDlg, UINT id);
 
 /** \brief Loads or synchronizes updater checkboxes (disable beta checkbox if release isn't set)
  * \param hDlg
@@ -97,9 +96,6 @@ INT_PTR CALLBACK Page_About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 			EnableWindow((HWND)lParam, 1);
 			SetForegroundWindow(options);
 			return TRUE;
-		}else if(id == IDC_ABT_MAILuri) {
-			OnLinkClicked(hDlg, id);
-			return TRUE;
 		}else if(id == IDC_UPDATE_RELEASE) {
 			SetUpdateChecks(hDlg, 1);
 		}
@@ -169,8 +165,8 @@ static void OnInit(HWND hDlg)   //----------------------------------------------
 	
 	SendDlgItemMessage(hDlg,IDC_STARTUP,WM_SETFONT,(WPARAM)hftStartup,0);
 	
-	LinkControl_Setup(GetDlgItem(hDlg,IDC_ABT_WEBuri), LCF_SIMPLE, NULL);
-	LinkControl_Setup(GetDlgItem(hDlg,IDC_ABT_MAILuri), LCF_NOTIFYONLY, NULL);
+	LinkControl_Setup(GetDlgItem(hDlg,IDC_ABT_WEBuri), LCF_HTTPS, NULL);
+	LinkControl_Setup(GetDlgItem(hDlg,IDC_ABT_MAILuri), LCF_SIMPLE, L"https://github.com/Balls0fSteel/T-Clock-ng/issues");
 	LinkControl_Setup(GetDlgItem(hDlg,IDC_ABT_FORUMuri), LCF_SIMPLE, NULL);
 	
 	CheckDlgButton(hDlg, IDC_STARTUP, IsStartupAdded());
@@ -200,16 +196,4 @@ void OnApply(HWND hDlg)
 		AddStartup();
 	else
 		RemoveStartup();
-}
-/*--------------------------------------------------
- -- IF User Clicks eMail - Fire up their Mail Client
---------------------------------------------------*/
-void OnLinkClicked(HWND hDlg, UINT id)
-{
-	wchar_t str[MAX_PATH];
-	size_t len;
-	len = swprintf(str, _countof(str), FMT("mailto:"));
-	len += GetDlgItemText(hDlg, id, str+len, 64);
-	len += swprintf(str+len,  _countof(str)-len, FMT("?subject=About %s (%hs)"), ABT_TITLE, COMPILER_STRING);
-	api.Exec(str, NULL, hDlg);
 }

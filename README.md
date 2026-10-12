@@ -1,6 +1,41 @@
-T-Clock Redux
-==============
-<sup>GCC<sup>(MinGW-w64)</sup></sup> [![Build Status](https://travis-ci.org/White-Tiger/T-Clock.svg?branch=yg-master)](https://travis-ci.org/White-Tiger/T-Clock) [![Coverity Status](https://scan.coverity.com/projects/3794/badge.svg)](https://scan.coverity.com/projects/white-tiger-t-clock) <sup>MSVC</sup> [![Build status](https://ci.appveyor.com/api/projects/status/b3qehrl4c8naisx4?svg=true)](https://ci.appveyor.com/project/White-Tiger/t-clock) <sub>(click picture below for full size)</sub>
+T-Clock-ng
+==========
+[![build](https://github.com/Balls0fSteel/T-Clock-ng/actions/workflows/build.yml/badge.svg)](https://github.com/Balls0fSteel/T-Clock-ng/actions/workflows/build.yml)
+
+**T-Clock-ng** is a fork of [White-Tiger's T-Clock Redux](https://github.com/White-Tiger/T-Clock) (last released 2018)
+brought up to date for **Windows 11**:
+* works with the stock Windows 11 taskbar (22H2/23H2/24H2), which no longer has the classic clock window T-Clock used to hook
+* still works with classic taskbars (Windows 7–10, or Windows 11 with StartAllBack / ExplorerPatcher)
+* builds with current Visual Studio (2017–2026) and MinGW-w64 GCC; GitHub Actions CI
+
+See [CHANGELOG.md](CHANGELOG.md) for details and [PLAN.md](PLAN.md) for what's next.
+
+### Windows 11 taskbar ("overlay clock")
+Windows 11's taskbar is drawn with XAML; there is no clock window to take over. On Windows 11, when no classic clock
+is found, T-Clock places its own clock window on top of the original clock, covering it with the taskbar's color.
+Clicking it opens Windows' calendar as usual (or whatever you configured).
+
+Settings (no UI yet) in the `[Taskbar]` section of `T-Clock.ini` (portable mode) or as DWORDs under
+`HKCU\Software\Stoic Joker's\T-Clock 2010\Taskbar`:
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `Win11Overlay` | `0` | `0` = auto (overlay on Windows 11 without a classic clock), `1` = always, `-1` = never |
+| `Win11OverlayPopup` | `0` | `1` = use a top-level popup instead of a child window of the taskbar |
+| `Win11OverlayOffsetX` / `Win11OverlayOffsetY` | `0` | move the overlay by N pixels |
+
+Keep Windows' own clock enabled; T-Clock locates and covers it. Set *Clock Text → Background* to override the
+automatically sampled background color.
+
+### Building
+* **Visual Studio 2017 or newer** with "Desktop development with C++": run `src\compile.bat`
+  (or open `src\~ide\msvc-vs.sln`). Output goes to `Release\`.
+* **MinGW-w64 / GCC**: `src/compile.bat` (bash part) with `mingw32-make`, see `src/~ide/Makefile`.
+
+---
+
+### Original T-Clock Redux readme
+<sub>(click picture below for full size)</sub>
 ![clockshowcase](https://cloud.githubusercontent.com/assets/1467733/4608572/71b48156-5283-11e4-960f-b0415b5b7cec.png)  
 **T-Clock Redux** is an enhanced fork of [Stoic Joker's T-Clock 2010](http://www.stoicjoker.com/TClock/)  
 with ISO week number support, bug fixes and the ability to use Windows' default calendar and tooltips.
@@ -60,7 +95,7 @@ If you don't mind to read lots of text, and want to know more about T-Clock and 
 - [ ] + improved hotkey support *tbd*
 
 ### Requirements
-* Windows 2000+ *(up to Windows 10 as of 2014)*
+* Windows 2000+ *(up to Windows 10 as of 2014; Windows 11 supported by T-Clock-ng)*
 
 ### What's that `_vc2010` build?
 * As of 2018, all new releases will be build with GCC instead of the Visual C++ 2010 compiler.

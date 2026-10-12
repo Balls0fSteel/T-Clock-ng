@@ -10,8 +10,8 @@
 
 //const wchar_t* kUpdateURL = L"https://rawgit.com/White-Tiger/T-Clock/master/src/version"; // fails on XP
 //const wchar_t* kUpdateURL = L"https://cdn.rawgit.com/White-Tiger/T-Clock/master/src/version"; // quite unusable thanks to "extreme" caching
-const wchar_t* kUpdateURL = L"https://raw.githubusercontent.com/White-Tiger/T-Clock/master/src/version"; // works on XP, even though it's https
-const wchar_t* kDownloadURL = L"https://github.com/White-Tiger/T-Clock/releases";
+const wchar_t* kUpdateURL = L"https://raw.githubusercontent.com/Balls0fSteel/T-Clock-ng/master/src/version"; // works on XP, even though it's https
+const wchar_t* kDownloadURL = L"https://github.com/Balls0fSteel/T-Clock-ng/releases";
 #define UPDATE_BUFFER 2048
 #define WM_DOWNLOAD_RESULT WM_USER /**< 0 if successful, otherwise WINHTTP_CALLBACK_STATUS_* or HTTP status code */
 

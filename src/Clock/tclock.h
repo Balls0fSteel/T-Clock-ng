@@ -244,6 +244,17 @@ LRESULT OnTClockCommand(HWND hwnd, WPARAM wParam);
  * \sa TrackPopupMenu() */
 void OnContextMenu(HWND hwnd, HWND hwnd_from, int xPos, int yPos);
 
+// win11.c
+/** \brief checks if \p clock is our overlay clock (used on Windows 11's XAML taskbar) */
+int Win11Overlay_IsOverlay(HWND clock);
+/** \brief starts the helper thread that tracks the original clock for our overlay clock (no-op for classic clocks) */
+void Win11Overlay_Start(HWND clock);
+/** \brief stops the helper thread \sa Win11Overlay_Start() */
+void Win11Overlay_Stop();
+/** \brief requests to toggle Windows 11's calendar
+ * \return boolean, \c 0 if there's no overlay clock */
+int Win11Overlay_ToggleCalendar();
+
 // mouse.c
 void OnTimerMouse(HWND hwnd);
 void OnMouseMsg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);

@@ -1,6 +1,7 @@
 #include "tcdll.h"
 #include "clock_internal.h"
 #include <sys/stat.h>
+#include <psapi.h> // GetProcessImageFileName
 
 static const wchar_t m_regkey[] = L"Software\\Stoic Joker's\\T-Clock 2010"; /**< our registry key root */
 static const size_t m_regkey_size = _countof(m_regkey); /**< size of \c m_regkey incl. trailing null \sa m_regkey */
@@ -15,6 +16,17 @@ HWND Clock_GetClock(int uncached) {
 		return gs_hwndClock;
 	
 	taskbar = FindWindowA("Shell_TrayWnd", NULL);
+	if(!taskbar)
+		return NULL;
+	// our own overlay clock (Windows 11 XAML taskbar)
+	child = FindWindowEx(taskbar, NULL, TCLOCK_OVERLAY_CLASS, NULL);
+	if(!child) { // owned popup variant
+		child = FindWindowEx(NULL, NULL, TCLOCK_OVERLAY_CLASS, NULL);
+		if(child && GetWindow(child, GW_OWNER) != taskbar)
+			child = NULL;
+	}
+	if(child)
+		return child;
 	// find the clock window
 	for(child=GetWindow(taskbar,GW_CHILD); child; child=GetWindow(child,GW_HWNDNEXT)) {
 		GetClassNameA(child, classname, _countof(classname));
@@ -29,10 +41,41 @@ HWND Clock_GetClock(int uncached) {
 	}
 	return NULL;
 }
+#ifndef PROCESS_QUERY_LIMITED_INFORMATION
+#	define PROCESS_QUERY_LIMITED_INFORMATION 0x1000
+#endif
+/**
+ * \brief checks if \p hwnd is a Windows 11 shell flyout (calendar / notification center)
+ * \remarks those are hosted as \c Windows.UI.Core.CoreWindow by \c ShellExperienceHost.exe
+ * \return boolean */
+static int IsWin11ClockFlyout(HWND hwnd) {
+	static const wchar_t kHost[] = L"\\ShellExperienceHost.exe";
+	wchar_t path[MAX_PATH];
+	char classname[64];
+	DWORD pid = 0;
+	HANDLE process;
+	int len, ret = 0;
+	if(!hwnd || !GetClassNameA(hwnd, classname, _countof(classname)) || strcmp(classname, "Windows.UI.Core.CoreWindow"))
+		return 0;
+	GetWindowThreadProcessId(hwnd, &pid);
+	process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+	if(!process)
+		return 0;
+	len = (int)GetProcessImageFileName(process, path, _countof(path));
+	if(len >= (int)_countof(kHost)-1 && !wcscasecmp(path + len - (_countof(kHost)-1), kHost))
+		ret = 1;
+	CloseHandle(process);
+	return ret;
+}
 HWND Clock_GetCalendar() {
 	HWND hwnd = FindWindowExA(NULL,NULL,"ClockFlyoutWindow",NULL);
 	if(hwnd)
 		return hwnd;
+	if(gs_tos >= TOS_WIN11) { // calendar is part of the notification center, which is only "open" while active
+		hwnd = GetForegroundWindow();
+		if(IsWin11ClockFlyout(hwnd))
+			return hwnd;
+	}
 	hwnd = FindWindowExA(NULL, NULL, "Windows.UI.Core.CoreWindow", "Date and Time Information");
 	if(hwnd){ // starts "invisible" full-size and becomes re-sized/moved and "visible" later
 		union{

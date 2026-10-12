@@ -15,7 +15,7 @@ INC0 =
 CFLAGS0 = -D_UNICODE -DUNICODE -fno-ident -Wall -Werror=declaration-after-statement -fvisibility=hidden -ffunction-sections -fmerge-all-constants -fno-asynchronous-unwind-tables -fno-exceptions -D_POSIX=1 -D_POSIX_C_SOURCE=200112L -D__STDC_FORMAT_MACROS -D__USE_MINGW_ANSI_STDIO=0 -D__MINGW_USE_VC2005_COMPAT -DWINVER=0x0501 -DPSAPI_VERSION=1 -DWIN2K_COMPAT
 RESINC0 = 
 LIBDIR0 = 
-LIB0 = -ladvapi32 -lshell32 -luser32 -lole32 -lgdi32 -lpsapi -lcomctl32 -lcomdlg32 -lshlwapi -lversion -lwinmm -lws2_32 -lmpr -luuid -lmsimg32 -ldsound -lwtsapi32
+LIB0 = -ladvapi32 -lshell32 -luser32 -lole32 -loleaut32 -lgdi32 -lpsapi -lcomctl32 -lcomdlg32 -lshlwapi -lversion -lwinmm -lws2_32 -lmpr -luuid -lmsimg32 -ldsound -lwtsapi32
 LDFLAGS0 = -municode -static -Wl,--gc-sections -mwindows
 
 CC1 = $(CCACHE) x86_64-w64-mingw32-gcc
@@ -28,7 +28,7 @@ INC1 =
 CFLAGS1 = -D_UNICODE -DUNICODE -fno-ident -Wall -Werror=declaration-after-statement -fvisibility=hidden -ffunction-sections -fmerge-all-constants -fno-asynchronous-unwind-tables -fno-exceptions -D_POSIX=1 -D_POSIX_C_SOURCE=200112L -D__STDC_FORMAT_MACROS -D__USE_MINGW_ANSI_STDIO=0 -D__MINGW_USE_VC2005_COMPAT -DWINVER=0x0501 -DPSAPI_VERSION=1 -DWIN2K_COMPAT
 RESINC1 = 
 LIBDIR1 = 
-LIB1 = -ladvapi32 -lshell32 -luser32 -lole32 -lgdi32 -lpsapi -lcomctl32 -lcomdlg32 -lshlwapi -lversion -lwinmm -lws2_32 -lmpr -luuid -lmsimg32 -ldsound -lwtsapi32
+LIB1 = -ladvapi32 -lshell32 -luser32 -lole32 -loleaut32 -lgdi32 -lpsapi -lcomctl32 -lcomdlg32 -lshlwapi -lversion -lwinmm -lws2_32 -lmpr -luuid -lmsimg32 -ldsound -lwtsapi32
 LDFLAGS1 = -municode -static -Wl,--gc-sections -mwindows
 
 INC_RELEASE_32 = $(INC0)
@@ -77,6 +77,7 @@ OUT_DEBUG_64 = ..\\..\\Debug\\Clock64.exe
 
 OBJ_RELEASE_32 = $(OBJDIR_RELEASE_32)\\__\\Clock\\tClock.o \
 	$(OBJDIR_RELEASE_32)\\__\\Clock\\timer.o \
+	$(OBJDIR_RELEASE_32)\\__\\Clock\\win11.o \
 	$(OBJDIR_RELEASE_32)\\__\\common\\HaveSetTimePerms.o \
 	$(OBJDIR_RELEASE_32)\\__\\common\\clock.o \
 	$(OBJDIR_RELEASE_32)\\__\\common\\control_extensions.o \
@@ -107,6 +108,7 @@ OBJ_RELEASE_32 = $(OBJDIR_RELEASE_32)\\__\\Clock\\tClock.o \
 
 OBJ_RELEASE_64 = $(OBJDIR_RELEASE_64)\\__\\Clock\\tClock.o \
 	$(OBJDIR_RELEASE_64)\\__\\Clock\\timer.o \
+	$(OBJDIR_RELEASE_64)\\__\\Clock\\win11.o \
 	$(OBJDIR_RELEASE_64)\\__\\common\\HaveSetTimePerms.o \
 	$(OBJDIR_RELEASE_64)\\__\\common\\clock.o \
 	$(OBJDIR_RELEASE_64)\\__\\common\\control_extensions.o \
@@ -137,6 +139,7 @@ OBJ_RELEASE_64 = $(OBJDIR_RELEASE_64)\\__\\Clock\\tClock.o \
 
 OBJ_DEBUG_32 = $(OBJDIR_DEBUG_32)\\__\\Clock\\tClock.o \
 	$(OBJDIR_DEBUG_32)\\__\\Clock\\timer.o \
+	$(OBJDIR_DEBUG_32)\\__\\Clock\\win11.o \
 	$(OBJDIR_DEBUG_32)\\__\\common\\HaveSetTimePerms.o \
 	$(OBJDIR_DEBUG_32)\\__\\common\\clock.o \
 	$(OBJDIR_DEBUG_32)\\__\\common\\control_extensions.o \
@@ -167,6 +170,7 @@ OBJ_DEBUG_32 = $(OBJDIR_DEBUG_32)\\__\\Clock\\tClock.o \
 
 OBJ_DEBUG_64 = $(OBJDIR_DEBUG_64)\\__\\Clock\\tClock.o \
 	$(OBJDIR_DEBUG_64)\\__\\Clock\\timer.o \
+	$(OBJDIR_DEBUG_64)\\__\\Clock\\win11.o \
 	$(OBJDIR_DEBUG_64)\\__\\common\\HaveSetTimePerms.o \
 	$(OBJDIR_DEBUG_64)\\__\\common\\clock.o \
 	$(OBJDIR_DEBUG_64)\\__\\common\\control_extensions.o \
@@ -223,6 +227,9 @@ $(OBJDIR_RELEASE_32)\\__\\Clock\\tClock.o: ..\\Clock\\tClock.rc
 
 $(OBJDIR_RELEASE_32)\\__\\Clock\\timer.o: ..\\Clock\\timer.c
 	$(CC0) $(CFLAGS_RELEASE_32) $(INC_RELEASE_32) -c ..\\Clock\\timer.c -o $(OBJDIR_RELEASE_32)\\__\\Clock\\timer.o
+
+$(OBJDIR_RELEASE_32)\\__\\Clock\\win11.o: ..\\Clock\\win11.c
+	$(CC0) $(CFLAGS_RELEASE_32) $(INC_RELEASE_32) -c ..\\Clock\\win11.c -o $(OBJDIR_RELEASE_32)\\__\\Clock\\win11.o
 
 $(OBJDIR_RELEASE_32)\\__\\common\\HaveSetTimePerms.o: ..\\common\\HaveSetTimePerms.c
 	$(CC0) $(CFLAGS_RELEASE_32) $(INC_RELEASE_32) -c ..\\common\\HaveSetTimePerms.c -o $(OBJDIR_RELEASE_32)\\__\\common\\HaveSetTimePerms.o
@@ -329,6 +336,9 @@ $(OBJDIR_RELEASE_64)\\__\\Clock\\tClock.o: ..\\Clock\\tClock.rc
 
 $(OBJDIR_RELEASE_64)\\__\\Clock\\timer.o: ..\\Clock\\timer.c
 	$(CC1) $(CFLAGS_RELEASE_64) $(INC_RELEASE_64) -c ..\\Clock\\timer.c -o $(OBJDIR_RELEASE_64)\\__\\Clock\\timer.o
+
+$(OBJDIR_RELEASE_64)\\__\\Clock\\win11.o: ..\\Clock\\win11.c
+	$(CC1) $(CFLAGS_RELEASE_64) $(INC_RELEASE_64) -c ..\\Clock\\win11.c -o $(OBJDIR_RELEASE_64)\\__\\Clock\\win11.o
 
 $(OBJDIR_RELEASE_64)\\__\\common\\HaveSetTimePerms.o: ..\\common\\HaveSetTimePerms.c
 	$(CC1) $(CFLAGS_RELEASE_64) $(INC_RELEASE_64) -c ..\\common\\HaveSetTimePerms.c -o $(OBJDIR_RELEASE_64)\\__\\common\\HaveSetTimePerms.o
@@ -438,6 +448,9 @@ $(OBJDIR_DEBUG_32)\\__\\Clock\\tClock.o: ..\\Clock\\tClock.rc
 $(OBJDIR_DEBUG_32)\\__\\Clock\\timer.o: ..\\Clock\\timer.c
 	$(CC0) $(CFLAGS_DEBUG_32) $(INC_DEBUG_32) -c ..\\Clock\\timer.c -o $(OBJDIR_DEBUG_32)\\__\\Clock\\timer.o
 
+$(OBJDIR_DEBUG_32)\\__\\Clock\\win11.o: ..\\Clock\\win11.c
+	$(CC0) $(CFLAGS_DEBUG_32) $(INC_DEBUG_32) -c ..\\Clock\\win11.c -o $(OBJDIR_DEBUG_32)\\__\\Clock\\win11.o
+
 $(OBJDIR_DEBUG_32)\\__\\common\\HaveSetTimePerms.o: ..\\common\\HaveSetTimePerms.c
 	$(CC0) $(CFLAGS_DEBUG_32) $(INC_DEBUG_32) -c ..\\common\\HaveSetTimePerms.c -o $(OBJDIR_DEBUG_32)\\__\\common\\HaveSetTimePerms.o
 
@@ -546,6 +559,9 @@ $(OBJDIR_DEBUG_64)\\__\\Clock\\tClock.o: ..\\Clock\\tClock.rc
 
 $(OBJDIR_DEBUG_64)\\__\\Clock\\timer.o: ..\\Clock\\timer.c
 	$(CC1) $(CFLAGS_DEBUG_64) $(INC_DEBUG_64) -c ..\\Clock\\timer.c -o $(OBJDIR_DEBUG_64)\\__\\Clock\\timer.o
+
+$(OBJDIR_DEBUG_64)\\__\\Clock\\win11.o: ..\\Clock\\win11.c
+	$(CC1) $(CFLAGS_DEBUG_64) $(INC_DEBUG_64) -c ..\\Clock\\win11.c -o $(OBJDIR_DEBUG_64)\\__\\Clock\\win11.o
 
 $(OBJDIR_DEBUG_64)\\__\\common\\HaveSetTimePerms.o: ..\\common\\HaveSetTimePerms.c
 	$(CC1) $(CFLAGS_DEBUG_64) $(INC_DEBUG_64) -c ..\\common\\HaveSetTimePerms.c -o $(OBJDIR_DEBUG_64)\\__\\common\\HaveSetTimePerms.o

@@ -49,11 +49,11 @@ BEGIN
         BEGIN
             VALUE "Comments", "SystemTray Clock Utility"
             VALUE "CompanyName", "-"
-            VALUE "FileDescription", "T-Clock Redux"
+            VALUE "FileDescription", "T-Clock-ng"
             VALUE "FileVersion", VER_SHORT " #" STR(VER_REVISION)
             VALUE "InternalName", "Clock.exe"
             VALUE "OriginalFilename", "Clock.exe"
-            VALUE "ProductName", "T-Clock Redux"
+            VALUE "ProductName", "T-Clock-ng"
             VALUE "ProductVersion", VER_SHORT " #" STR(VER_REVISION)
         END
     END

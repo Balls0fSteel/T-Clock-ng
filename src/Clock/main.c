@@ -113,7 +113,9 @@ void ToggleCalendar(int type)   //---------------------------+++-->
 			SetForegroundWindow(calendar);
 		return;
 	}
-	if(api.OS >= TOS_VISTA && (!is_custom && type!=1)){
+	if(!is_custom && type!=1 && Win11Overlay_ToggleCalendar()){
+		// Windows 11 taskbar, handled by our helper thread
+	} else if(api.OS >= TOS_VISTA && (!is_custom && type!=1)){
 		// Windows 10 workaround as SendMessage doesn't work any longer (no error given)
 		SendMessageCallback(g_hwndClock, WM_USER+102, 1, 0, ToggleCalendar_done, 0);//1=open, 0=close
 	} else
@@ -139,23 +141,23 @@ void RegisterSession(HWND hwnd)   //---------{ Explicitly Linked for Windows 200
 }
 
 int GetStartupFile(wchar_t filename[MAX_PATH]){
+	// old Stoic Joker link, old T-Clock Redux link, current name (last one is also used for new links)
+	static const wchar_t* const kNames[] = {CONF_START_OLD, CONF_START_REDUX, CONF_START};
 	size_t offset;
+	unsigned i;
 	if(SHGetFolderPath(NULL,CSIDL_STARTUP,NULL,SHGFP_TYPE_CURRENT,filename)!=S_OK){
 		*filename = '\0';
 		return 0;
 	}
 	offset = wcslen(filename);
 	filename[offset] = '\\';
-	filename[offset+1] = '\0'; // old Stoic Joker link
-	wcscat(filename, CONF_START_OLD);
-	wcscat(filename, L".lnk");
-	if(PathFileExists(filename))
-		return 1;
-	filename[offset+1] = '\0'; // new name
-	wcscat(filename, CONF_START);
-	wcscat(filename, L".lnk");
-	if(PathFileExists(filename))
-		return 1;
+	for(i=0; i<_countof(kNames); ++i){
+		filename[offset+1] = '\0';
+		wcscat(filename, kNames[i]);
+		wcscat(filename, L".lnk");
+		if(PathFileExists(filename))
+			return 1;
+	}
 	return 0;
 }
 
@@ -181,8 +183,15 @@ void RemoveStartup()
 void AddStartup()
 {
 	wchar_t path[MAX_PATH], exe[MAX_PATH];
-	if(IsStartupAdded())
+	if(IsStartupAdded()){ // migrate links with an old name
+		GetStartupFile(path);
+		memcpy(exe, path, sizeof(path));
+		del_title(exe);
+		add_title(exe, CONF_START L".lnk");
+		if(wcscasecmp(path, exe))
+			MoveFile(path, exe);
 		return;
+	}
 	GetStartupFile(path);
 	WindowsShellLink(path, 0, GetClockExe(exe), NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 }
@@ -656,6 +665,7 @@ LRESULT CALLBACK Window_TClock(HWND hwnd,	UINT message, WPARAM wParam, LPARAM lP
 		g_hwndSheet = g_hDlgTimer = g_hDlgStopWatch = NULL;
 		EndAlarm();
 		EndAllTimers();
+		Win11Overlay_Stop();
 		api.Exit(); // exit clock, remove injection
 		if(message!=WM_ENDSESSION)
 			PostQuitMessage(0);
@@ -673,6 +683,7 @@ LRESULT CALLBACK Window_TClock(HWND hwnd,	UINT message, WPARAM wParam, LPARAM lP
 		DebugLog(0, "tray clock initialized");
 		g_hwndClock = (HWND)lParam;
 		api.InjectFinalize(); // injected, now remove hook
+		Win11Overlay_Start(g_hwndClock); // no-op unless we're using an overlay clock (Windows 11)
 		return 0;
 		
 	case MAINM_EXIT:    // exit

@@ -44,7 +44,7 @@ VS_VERSION_INFO VERSIONINFO
             VALUE "FileVersion", VER_SHORT " #" STR(VER_REVISION)
             VALUE "InternalName", "XPCalendar.exe"
             VALUE "OriginalFilename", "XPCalendar.exe"
-            VALUE "ProductName", "T-Clock Redux"
+            VALUE "ProductName", "T-Clock-ng"
             VALUE "ProductVersion", VER_SHORT " #" STR(VER_REVISION)
         }
     }

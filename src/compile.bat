@@ -23,11 +23,19 @@ return $ret 2>/dev/null;exit $ret
 @echo off
 rem # start of batch
 pushd %~dp0~ide
-if not defined signtool set "signtool="C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin\signtool.exe""
-if not defined vcvarsall set "vcvarsall="C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat""
-if not defined SetEnv set "SetEnv="C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd""
+rem # find MSBuild of the latest Visual Studio (2017+) with C++ tools, unless provided
+if not defined MSBUILD (
+	for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -find MSBuild\**\Bin\MSBuild.exe`) do (
+		if not defined MSBUILD set "MSBUILD=%%i"
+	)
+)
+if not defined MSBUILD (
+	echo MSBuild not found. Install Visual Studio 2017+ with "Desktop development with C++" or set MSBUILD.
+	popd
+	exit /B 1
+)
 
-set "AUVER_IF_NOT=%TRAVIS_TAG%%APPVEYOR_REPO_TAG_NAME%"
+set "AUVER_IF_NOT=%RELEASE_TAG%%TRAVIS_TAG%%APPVEYOR_REPO_TAG_NAME%"
 if not defined AUVER_IF_NOT set "AUVER_SET=STATUS=0"
 
 rem if not defined APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED (
@@ -48,13 +56,9 @@ if "%1"=="clean" (
 	shift
 	set "target=/t:Clean"
 )
-rem %vcvarsall% x86
-call %SetEnv% /release /x86
-msbuild "msvc-vs.sln" /p:Platform=x86 /p:Configuration=Release /verbosity:minimal %MSBUILD_LOGGER% %target% "%1" "%2" "%3" "%4" "%5" "%6" "%7" "%8" "%9"
-if %errorlevel% neq 0 exit /B %errorlevel%
-rem %vcvarsall% amd64
-call %SetEnv% /release /x64
-msbuild "msvc-vs.sln" /p:Platform=x64 /p:Configuration=Release /verbosity:minimal %MSBUILD_LOGGER% %target% "%1" "%2" "%3" "%4" "%5" "%6" "%7" "%8" "%9"
-if %errorlevel% neq 0 exit /B %errorlevel%
+"%MSBUILD%" "msvc-vs.sln" /p:Platform=x86 /p:Configuration=Release /verbosity:minimal /nologo %MSBUILD_LOGGER% %target% %1 %2 %3 %4 %5 %6 %7 %8 %9
+if %errorlevel% neq 0 (popd & exit /B %errorlevel%)
+"%MSBUILD%" "msvc-vs.sln" /p:Platform=x64 /p:Configuration=Release /verbosity:minimal /nologo %MSBUILD_LOGGER% %target% %1 %2 %3 %4 %5 %6 %7 %8 %9
+if %errorlevel% neq 0 (popd & exit /B %errorlevel%)
 popd
 exit /B %errorlevel%
