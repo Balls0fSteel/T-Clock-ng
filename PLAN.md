@@ -6,11 +6,12 @@ Last updated: 2026-10-12_164546_1791816346
 - Windows 11 support (branch `win11`): overlay clock for the XAML taskbar, build modernization, fork URLs.
 
 ## Next steps
-- [ ] Test overlay mode on the **stock Windows 11 taskbar** (StartAllBack's classic taskbar disabled):
-      clock found via UI Automation? background matches (light/dark, accent color, transparency)? calendar toggles?
-      autohide, DPI scaling (125/150 %), taskbar alignment left/center, explorer restart.
-- [ ] Verify the layered *child* window draws above the XAML island; if not, default `Win11OverlayPopup` to 1.
-- [ ] Test virtual desktop switching and "show desktop" with the overlay.
+- [x] Overlay mode on the stock Windows 11 24H2 taskbar: UIA lookup, child window above XAML, accent-color
+      background, hover/tooltip, calendar toggle, clean unload (2026-10-12).
+- [ ] Still to test on the stock taskbar: light theme, transparency effects on, autohide, DPI scaling
+      (125/150 %), left-aligned taskbar, explorer restart while running, virtual desktops, "show desktop".
+- [ ] Overlay is right-aligned and can be wider than the original clock (covers part of the next tray icon with
+      long formats); consider shrinking the default format/padding on Windows 11.
 - [ ] Full MinGW build (`mingw32-make`, needs `pacman -S mingw-w64-x86_64-make` + i686 toolchain for 32-bit).
 - [ ] First tagged release from GitHub Actions; bump `src/version` (update checker) when releasing.
 

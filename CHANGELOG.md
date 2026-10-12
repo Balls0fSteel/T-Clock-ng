@@ -41,7 +41,13 @@ Timestamps: `YYYY-MM-DD_HHMMSS_epoch` (local time).
 - Tested on Windows 11 IoT Enterprise LTSC 2024 (24H2, build 26100) with StartAllBack (classic taskbar):
   classic mode works unchanged; forced overlay mode (`Win11Overlay=1`) renders, hovers, shows tooltips, toggles the
   calendar and unloads cleanly from explorer.
-- Not yet tested on the stock (XAML) Windows 11 taskbar on this machine (StartAllBack is active) — see PLAN.md.
+- 2026-10-12_165800_1791817080 — tested on the **stock Windows 11 24H2 taskbar** (StartAllBack's classic taskbar
+  temporarily disabled): overlay mode is selected automatically; UIA finds the clock (`SystemTray.OmniButton`,
+  name "Clock 4:56 PM 10/12/2026", full taskbar height); the layered child window draws above the XAML island;
+  the sampled background matches the accent-colored taskbar so the original clock is hidden; hover, tooltip,
+  calendar open/close and clean unload all work.
+- A tray icon with sensor readings (numbers in its tooltip) also matched the time digits; the year-match scoring
+  correctly preferred the real clock.
 - On taskbars with a vertical gradient (some StartAllBack themes) a forced overlay's single sampled background color
   can't match exactly; set `BackColor` manually if needed. The stock Windows 11 taskbar is flat.
 - MinGW: sources compile with GCC 16 (MSYS2), but a full `make` build wasn't run as `mingw32-make` isn't installed.
