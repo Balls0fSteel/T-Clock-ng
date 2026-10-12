@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
-	<Workspace title="T-Clock Redux (msvc)">
+	<Workspace title="T-Clock-ng (msvc)">
 		<Project filename="msvc-cb-autoversion.cbp" />
 		<Project filename="msvc-cb-dll.cbp">
 			<Depends filename="msvc-cb-autoversion.cbp" />

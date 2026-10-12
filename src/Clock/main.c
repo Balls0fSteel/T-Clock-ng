@@ -141,23 +141,23 @@ void RegisterSession(HWND hwnd)   //---------{ Explicitly Linked for Windows 200
 }
 
 int GetStartupFile(wchar_t filename[MAX_PATH]){
+	// old Stoic Joker link, old T-Clock Redux link, current name (last one is also used for new links)
+	static const wchar_t* const kNames[] = {CONF_START_OLD, CONF_START_REDUX, CONF_START};
 	size_t offset;
+	unsigned i;
 	if(SHGetFolderPath(NULL,CSIDL_STARTUP,NULL,SHGFP_TYPE_CURRENT,filename)!=S_OK){
 		*filename = '\0';
 		return 0;
 	}
 	offset = wcslen(filename);
 	filename[offset] = '\\';
-	filename[offset+1] = '\0'; // old Stoic Joker link
-	wcscat(filename, CONF_START_OLD);
-	wcscat(filename, L".lnk");
-	if(PathFileExists(filename))
-		return 1;
-	filename[offset+1] = '\0'; // new name
-	wcscat(filename, CONF_START);
-	wcscat(filename, L".lnk");
-	if(PathFileExists(filename))
-		return 1;
+	for(i=0; i<_countof(kNames); ++i){
+		filename[offset+1] = '\0';
+		wcscat(filename, kNames[i]);
+		wcscat(filename, L".lnk");
+		if(PathFileExists(filename))
+			return 1;
+	}
 	return 0;
 }
 
@@ -183,8 +183,15 @@ void RemoveStartup()
 void AddStartup()
 {
 	wchar_t path[MAX_PATH], exe[MAX_PATH];
-	if(IsStartupAdded())
+	if(IsStartupAdded()){ // migrate links with an old name
+		GetStartupFile(path);
+		memcpy(exe, path, sizeof(path));
+		del_title(exe);
+		add_title(exe, CONF_START L".lnk");
+		if(wcscasecmp(path, exe))
+			MoveFile(path, exe);
 		return;
+	}
 	GetStartupFile(path);
 	WindowsShellLink(path, 0, GetClockExe(exe), NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 }

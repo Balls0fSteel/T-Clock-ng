@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
-	<Workspace title="T-Clock Redux (gcc)">
+	<Workspace title="T-Clock-ng (gcc)">
 		<Project filename="gcc-autoversion.cbp" />
 		<Project filename="gcc-dll.cbp">
 			<Depends filename="gcc-autoversion.cbp" />

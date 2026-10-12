@@ -3,6 +3,21 @@
 All notable changes of the **T-Clock-ng** fork (based on [White-Tiger/T-Clock](https://github.com/White-Tiger/T-Clock) "T-Clock Redux" 2.4.4).
 Timestamps: `YYYY-MM-DD_HHMMSS_epoch` (local time).
 
+## 2026-10-12_170447_1791817487 — Product renamed to T-Clock-ng everywhere
+
+### Changed
+- File properties (version resources) of Clock(64).exe, T-Clock(64).dll, Options.exe and XPCalendar.exe:
+  product name "T-Clock-ng" (descriptions "T-Clock-ng" / "T-Clock-ng DLL").
+- Code::Blocks workspace titles.
+- Startup shortcut is now "T-Clock-ng[ x64].lnk". Old "T-Clock Redux" (and "Stoic Joker's T-Clock 2010")
+  shortcuts are still recognized and renamed when the "Start with Windows" option is applied.
+  Tested: an old "T-Clock Redux x64.lnk" was detected and renamed with its target intact.
+
+### Kept on purpose
+- Settings location `HKCU\Software\Stoic Joker's\T-Clock 2010` (renaming would lose existing settings), binary
+  names (Clock.exe, T-Clock.dll, …) and internal window/mutex names.
+- Historical credits ("T-Clock Redux" in README/About history, developer comments).
+
 ## 2026-10-12_170121_1791817281 — About page renamed to T-Clock-ng
 
 ### Changed

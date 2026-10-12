@@ -16,8 +16,8 @@ Last updated: 2026-10-12_164546_1791816346
 - [ ] First tagged release from GitHub Actions; bump `src/version` (update checker) when releasing.
 
 ## Open questions
-- Rename the product ("T-Clock Redux" in titles/About) to "T-Clock-ng"? Keep settings key `Stoic Joker's\T-Clock 2010`
-  for compatibility either way.
+- (resolved 2026-10-12: product renamed to T-Clock-ng; settings key `Stoic Joker's\T-Clock 2010` kept)
+- Move settings to a `T-Clock-ng` key with a one-time migration? Only worth it if the old key causes confusion.
 - Should overlay mode also hide the original clock via Windows' own setting instead of covering it? (Hiding it makes
   the tray reflow, so there'd be no free space at the clock position — covering seemed the better default.)
 
