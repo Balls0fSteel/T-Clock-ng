@@ -165,8 +165,8 @@ static void OnInit(HWND hDlg)   //----------------------------------------------
 	
 	SendDlgItemMessage(hDlg,IDC_STARTUP,WM_SETFONT,(WPARAM)hftStartup,0);
 	
-	LinkControl_Setup(GetDlgItem(hDlg,IDC_ABT_WEBuri), LCF_SIMPLE, NULL);
-	LinkControl_Setup(GetDlgItem(hDlg,IDC_ABT_MAILuri), LCF_SIMPLE, NULL);
+	LinkControl_Setup(GetDlgItem(hDlg,IDC_ABT_WEBuri), LCF_HTTPS, NULL);
+	LinkControl_Setup(GetDlgItem(hDlg,IDC_ABT_MAILuri), LCF_SIMPLE, L"https://github.com/Balls0fSteel/T-Clock-ng/issues");
 	LinkControl_Setup(GetDlgItem(hDlg,IDC_ABT_FORUMuri), LCF_SIMPLE, NULL);
 	
 	CheckDlgButton(hDlg, IDC_STARTUP, IsStartupAdded());

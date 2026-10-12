@@ -161,8 +161,8 @@ BEGIN
     RTEXT           "web:", IDC_ABT_WEB, 64, 13, 29, 9, SS_RIGHT
     RTEXT           "issues:", IDC_ABT_MAIL, 64, 24, 29, 9, SS_RIGHT
     RTEXT           "forum:", IDC_ABT_FORUM, 64, 35, 29, 9, SS_RIGHT
-    LTEXT           "https://github.com/Balls0fSteel/T-Clock-ng", IDC_ABT_WEBuri, 95, 13, 129, 9, SS_LINK
-    LTEXT           "https://github.com/Balls0fSteel/T-Clock-ng/issues", IDC_ABT_MAILuri, 95, 24, 129, 9, SS_LINK
+    LTEXT           "github.com/Balls0fSteel/T-Clock-ng", IDC_ABT_WEBuri, 95, 13, 129, 9, SS_LINK
+    LTEXT           "report a bug / request a feature", IDC_ABT_MAILuri, 95, 24, 129, 9, SS_LINK
     LTEXT           "http://donationcoder.com/forum/?board=324.0", IDC_ABT_FORUMuri, 95, 35, 129, 9, SS_LINK
     AUTOCHECKBOX    "Regularly check for updates", IDC_UPDATE_RELEASE, 29, 47, 105, 8
     AUTOCHECKBOX    "include beta versions", IDC_UPDATE_BETA, 142, 46, 83, 8
@@ -174,7 +174,7 @@ BEGIN
     LTEXT           "The Original T-Clock was written by Kazubon in the mid to late 90's. It was released with Source Code included so that others could learn from and expand on its features", IDC_STATIC, 13, 74, 283, 20
     LTEXT           "T-Clock2 is a modified version of Kazubon's Original code written by Two_toNe in 2003. Two_toNe added many new features that allowed it to run properly with the then new Windows XP themes.", IDC_STATIC, 13, 97, 283, 28
     LTEXT           "",IDC_ABT_TCLOCK, 13, 127, 283, 50
-    AUTOCHECKBOX    "Start T-Clock Redux when Windows starts", IDC_STARTUP, 42, 184, 222, 11
+    AUTOCHECKBOX    "Start T-Clock-ng when Windows starts", IDC_STARTUP, 42, 184, 222, 11
 END
 
 IDD_PAGEALARM DIALOGEX 0, 0, 310, 199

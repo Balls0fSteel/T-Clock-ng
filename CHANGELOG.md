@@ -3,6 +3,16 @@
 All notable changes of the **T-Clock-ng** fork (based on [White-Tiger/T-Clock](https://github.com/White-Tiger/T-Clock) "T-Clock Redux" 2.4.4).
 Timestamps: `YYYY-MM-DD_HHMMSS_epoch` (local time).
 
+## 2026-10-12_170121_1791817281 — About page renamed to T-Clock-ng
+
+### Changed
+- About page: title "T-Clock-ng", history line credits White-Tiger's T-Clock Redux, startup checkbox
+  "Start T-Clock-ng when Windows starts".
+- About links show compact text (`github.com/Balls0fSteel/T-Clock-ng`, "report a bug / request a feature") —
+  the full fork URLs were cut off by the dialog layout.
+- The startup shortcut file name (`CONF_START`, "T-Clock Redux.lnk") and the file version resources are
+  unchanged, so existing "start with Windows" shortcuts keep working.
+
 ## 2026-10-12_164546_1791816346 — Windows 11 support
 
 ### Added
