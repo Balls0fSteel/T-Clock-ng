@@ -5,6 +5,11 @@ static unsigned m_themecolor = 0x00000000;
 static unsigned m_themecolor_dark;
 static unsigned m_themecolor_alpha;
 
+int IsSystemLightTheme() {
+	// "Choose your default Windows mode" (taskbar, Start, etc.); dark if missing (pre-1903)
+	return Clock_GetSystemInt(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", L"SystemUsesLightTheme", 0);
+}
+
 void Clock_On_DWMCOLORIZATIONCOLORCHANGED(unsigned argb, BOOL blend) { /// there's a bug with "high" or "low" color intensity...
 	union{
 		unsigned ref;
@@ -75,6 +80,8 @@ unsigned Clock_GetColor(unsigned color, int flags)
 	case TCOLOR_DEFAULT:
 		if(flags & (TCOLORFLAG_RAW1|TCOLORFLAG_RAW2))
 			return color;
+		if(gs_overlay_bar) // Windows 11 taskbar isn't themed by uxtheme
+			return (IsSystemLightTheme() ? 0x001A1A1A : 0x00FFFFFF);
 		if(IsXPThemeActive() && gs_hwndClock)
 			return GetXPClockColor(gs_hwndClock, state);
 		else

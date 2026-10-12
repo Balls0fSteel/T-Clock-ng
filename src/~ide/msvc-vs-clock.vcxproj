@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -47,7 +47,7 @@
       <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;shell32.lib;user32.lib;ole32.lib;gdi32.lib;psapi.lib;comctl32.lib;comdlg32.lib;shlwapi.lib;version.lib;winmm.lib;ws2_32.lib;mpr.lib;uuid.lib;msimg32.lib;dsound.lib;wtsapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;shell32.lib;user32.lib;ole32.lib;oleaut32.lib;gdi32.lib;psapi.lib;comctl32.lib;comdlg32.lib;shlwapi.lib;version.lib;winmm.lib;ws2_32.lib;mpr.lib;uuid.lib;msimg32.lib;dsound.lib;wtsapi32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -72,6 +72,7 @@
     <ClCompile Include="..\Clock\soundselect.c" />
     <ClCompile Include="..\Clock\StopWatch.c" />
     <ClCompile Include="..\Clock\timer.c" />
+    <ClCompile Include="..\Clock\win11.c" />
     <ClCompile Include="..\Clock\settings.c" />
     <ClCompile Include="..\common\clock.c" />
     <ClCompile Include="..\common\control_extensions.c" />

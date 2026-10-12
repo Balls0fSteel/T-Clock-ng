@@ -113,7 +113,9 @@ void ToggleCalendar(int type)   //---------------------------+++-->
 			SetForegroundWindow(calendar);
 		return;
 	}
-	if(api.OS >= TOS_VISTA && (!is_custom && type!=1)){
+	if(!is_custom && type!=1 && Win11Overlay_ToggleCalendar()){
+		// Windows 11 taskbar, handled by our helper thread
+	} else if(api.OS >= TOS_VISTA && (!is_custom && type!=1)){
 		// Windows 10 workaround as SendMessage doesn't work any longer (no error given)
 		SendMessageCallback(g_hwndClock, WM_USER+102, 1, 0, ToggleCalendar_done, 0);//1=open, 0=close
 	} else
@@ -656,6 +658,7 @@ LRESULT CALLBACK Window_TClock(HWND hwnd,	UINT message, WPARAM wParam, LPARAM lP
 		g_hwndSheet = g_hDlgTimer = g_hDlgStopWatch = NULL;
 		EndAlarm();
 		EndAllTimers();
+		Win11Overlay_Stop();
 		api.Exit(); // exit clock, remove injection
 		if(message!=WM_ENDSESSION)
 			PostQuitMessage(0);
@@ -673,6 +676,7 @@ LRESULT CALLBACK Window_TClock(HWND hwnd,	UINT message, WPARAM wParam, LPARAM lP
 		DebugLog(0, "tray clock initialized");
 		g_hwndClock = (HWND)lParam;
 		api.InjectFinalize(); // injected, now remove hook
+		Win11Overlay_Start(g_hwndClock); // no-op unless we're using an overlay clock (Windows 11)
 		return 0;
 		
 	case MAINM_EXIT:    // exit

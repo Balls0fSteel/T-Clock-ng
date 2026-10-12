@@ -1,0 +1,46 @@
+name: build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write # only used to publish releases for tags
+
+jobs:
+  msvc:
+    runs-on: windows-latest
+    env:
+      # tagged builds get a "release" version status (see src/compile.bat)
+      RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # AutoVersion uses the commit count as revision
+
+      - name: Build x86 + x64 (MSVC)
+        shell: cmd
+        run: src\compile.bat
+
+      - name: Collect binaries
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory dist | Out-Null
+          Copy-Item Release\* dist -Recurse -Exclude *.pdb,*.ilk,*.lib,*.exp,*.ini
+          Get-ChildItem dist -Recurse | Select-Object FullName, Length
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: T-Clock-ng-${{ github.sha }}
+          path: dist
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $zip = "T-Clock-ng-${{ github.ref_name }}.zip"
+          Compress-Archive -Path dist\* -DestinationPath $zip
+          gh release create "${{ github.ref_name }}" $zip --generate-notes

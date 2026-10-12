@@ -150,7 +150,15 @@ enum{ // Drop&File enum / registry settings
 #define CLOCKM_REFRESHCLOCKPREVIEW        (WM_USER+7)
 #define CLOCKM_REFRESHCLOCKPREVIEWFORMAT  (WM_USER+8)
 #define CLOCKM_BLINKOFF                   (WM_USER+9)
+#define CLOCKM_OVERLAY_RECT               (WM_USER+10) /**< overlay: original clock rect; wParam = MAKELONG(left,top), lParam = MAKELONG(width,height) (physical screen coordinates) */
+#define CLOCKM_OVERLAY_BG                 (WM_USER+11) /**< overlay: sampled taskbar background; wParam = COLORREF, lParam = valid */
 #define CLOCKM_LOGGING_CLEANUP            (WM_USER+666)
+
+/** window class of our own clock window used on taskbars without \c TrayClockWClass (Windows 11 XAML taskbar)
+ * \remarks drawn as a layered window on top of the original clock */
+#define TCLOCK_OVERLAY_CLASS L"TClockOverlayWClass"
+/** "Taskbar" setting: 0 = auto (overlay if no classic clock found), 1 = always use overlay, -1 = never */
+#define OVERLAY_SETTING L"Win11Overlay"
 
 // Global Buffer Size Labels
 #define TNY_BUFF	32

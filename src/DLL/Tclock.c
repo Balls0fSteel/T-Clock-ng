@@ -87,6 +87,18 @@ void ColorUpdate(unsigned text_color, unsigned back_color) {
 		FillClockBG();
 }
 
+/*** overlay clock (Windows 11 XAML taskbar) ***/
+static char m_overlay = 0; ///< we draw our own layered clock window above the original clock
+static char m_overlay_popup = 0; ///< overlay is an owned popup instead of a child of the taskbar
+static ATOM m_overlay_class = 0;
+static RECT m_overlay_rc; ///< original clock's rect (screen) as reported by T-Clock.exe
+static char m_overlay_rc_valid = 0;
+static COLORREF m_overlay_bg; ///< sampled taskbar background color
+static char m_overlay_bg_valid = 0;
+static void OverlayReposition();
+static void OverlayUpdateMetrics();
+static void ClockRedraw(HWND hwnd, BOOL erase);
+
 /*** misc variables ***/
 static long m_clock_base_width; ///< original clock's width used by taskbar calculation
 static long m_clock_base_height; ///< original clock's height used by taskbar calculation
@@ -516,18 +528,169 @@ void SubsCreate(){
 	SubsSendResize();
 }
 int SetupClockAPI(int version, TClockAPI* api); // clock_api.c
+
+/*------------------------------------------------
+  overlay clock (Windows 11 XAML taskbar)
+--------------------------------------------------*/
+static UINT GetWindowDPI(HWND hwnd) {
+	typedef UINT (WINAPI* GetDpiForWindow_t)(HWND hwnd);
+	static GetDpiForWindow_t pGetDpiForWindow = (GetDpiForWindow_t)(intptr_t)-1;
+	if(pGetDpiForWindow == (GetDpiForWindow_t)(intptr_t)-1)
+		pGetDpiForWindow = (GetDpiForWindow_t)GetProcAddress(GetModuleHandleA("user32"), "GetDpiForWindow");
+	if(pGetDpiForWindow) {
+		UINT dpi = pGetDpiForWindow(hwnd);
+		if(dpi)
+			return dpi;
+	}
+	return 96;
+}
+/** \brief base window procedure of our overlay clock (subclassed by \c Window_Clock_Hooked() once initialized) */
+static LRESULT CALLBACK Window_OverlayClock(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	switch(message) {
+	case WM_ERASEBKGND:
+		return 1;
+	case WM_MOUSEACTIVATE:
+		return MA_NOACTIVATE;
+	}
+	return DefWindowProc(hwnd, message, wParam, lParam);
+}
+/**
+ * \brief creates our own clock window for taskbars without \c TrayClockWClass
+ * \param taskbar \c Shell_TrayWnd
+ * \return clock window or \c NULL on error
+ * \remarks called by our hook from within the taskbar's thread */
+HWND CreateOverlayClock(HWND taskbar) {
+	HWND hwnd = NULL;
+	SetupClockAPI(CLOCK_API, NULL); // we need our settings
+	if(!m_overlay_class) {
+		WNDCLASSEX wndclass = {sizeof(WNDCLASSEX)};
+		wndclass.style = CS_DBLCLKS;
+		wndclass.lpfnWndProc = Window_OverlayClock;
+		wndclass.hInstance = api.hInstance;
+		wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
+		wndclass.lpszClassName = TCLOCK_OVERLAY_CLASS;
+		m_overlay_class = RegisterClassEx(&wndclass);
+		if(!m_overlay_class)
+			return NULL;
+	}
+	m_overlay_popup = (char)api.GetInt(L"Taskbar", OVERLAY_SETTING L"Popup", 0);
+	if(!m_overlay_popup) { // layered child windows require Windows 8+
+		hwnd = CreateWindowEx(WS_EX_LAYERED|WS_EX_NOPARENTNOTIFY, MAKEINTATOM(m_overlay_class), L"T-Clock", WS_CHILD|WS_CLIPSIBLINGS, 0,0,1,1, taskbar, NULL, api.hInstance, NULL);
+		if(!hwnd)
+			m_overlay_popup = 1;
+	}
+	if(!hwnd) // owned popup (always above its owner, the taskbar)
+		hwnd = CreateWindowEx(WS_EX_LAYERED|WS_EX_TOOLWINDOW|WS_EX_TOPMOST|WS_EX_NOACTIVATE, MAKEINTATOM(m_overlay_class), L"T-Clock", WS_POPUP, 0,0,1,1, taskbar, NULL, api.hInstance, NULL);
+	if(!hwnd) {
+		UnregisterClass(MAKEINTATOM(m_overlay_class), api.hInstance);
+		m_overlay_class = 0;
+		return NULL;
+	}
+	m_overlay = 1;
+	m_overlay_rc_valid = 0;
+	m_overlay_bg_valid = 0;
+	gs_hwndClock = hwnd;
+	return hwnd;
+}
+/** \brief updates \c m_BORDER_MARGIN for the overlay (difference between taskbar and original clock height) */
+static void OverlayUpdateMetrics() {
+	RECT bar;
+	GetWindowRect(gs_taskbar, &bar);
+	if(m_overlay_rc_valid) {
+		if((bar.right-bar.left) > (bar.bottom-bar.top))
+			m_BORDER_MARGIN = (bar.bottom-bar.top) - (m_overlay_rc.bottom-m_overlay_rc.top);
+		else
+			m_BORDER_MARGIN = (bar.right-bar.left) - (m_overlay_rc.right-m_overlay_rc.left);
+		if(m_BORDER_MARGIN < 0)
+			m_BORDER_MARGIN = 0;
+	} else {
+		m_BORDER_MARGIN = MulDiv(8, GetWindowDPI(gs_taskbar), 96);
+	}
+}
+/** \brief positions our overlay clock above the original clock (right aligned) */
+static void OverlayReposition() {
+	RECT bar;
+	POINT pt;
+	int horizontal;
+	if(!m_overlay || !gs_hwndClock || !m_hdcClock)
+		return;
+	GetWindowRect(gs_taskbar, &bar);
+	horizontal = (bar.right-bar.left) > (bar.bottom-bar.top);
+	if(m_overlay_rc_valid) {
+		if(horizontal) {
+			pt.x = m_overlay_rc.right - m_rcClock.right;
+			pt.y = m_overlay_rc.top;
+		} else {
+			pt.x = m_overlay_rc.left;
+			pt.y = m_overlay_rc.bottom - m_rcClock.bottom;
+		}
+	} else { // best guess: next to "show desktop"
+		int margin = MulDiv(12, GetWindowDPI(gs_taskbar), 96);
+		if(horizontal) {
+			pt.x = bar.right - margin - m_rcClock.right;
+			pt.y = bar.top + m_BORDER_MARGIN/2;
+		} else {
+			pt.x = bar.left + m_BORDER_MARGIN/2;
+			pt.y = bar.bottom - margin - m_rcClock.bottom;
+		}
+	}
+	pt.x += api.GetInt(L"Taskbar", OVERLAY_SETTING L"OffsetX", 0);
+	pt.y += api.GetInt(L"Taskbar", OVERLAY_SETTING L"OffsetY", 0);
+	if(!m_overlay_popup)
+		ScreenToClient(gs_taskbar, &pt);
+	SetWindowPos(gs_hwndClock, (m_overlay_popup ? HWND_TOPMOST_nowarn : HWND_TOP), pt.x, pt.y, m_rcClock.right, m_rcClock.bottom, SWP_NOACTIVATE|SWP_NOOWNERZORDER|(m_bNoClock ? SWP_HIDEWINDOW : SWP_SHOWWINDOW));
+}
+/** \brief redraws the clock (layered overlay clocks are drawn directly, others invalidated) */
+static void ClockRedraw(HWND hwnd, BOOL erase) {
+	if(m_overlay && (hwnd == gs_hwndClock || hwnd == gs_taskbar)) {
+		if(!m_bNoClock)
+			DrawClock(NULL);
+		return;
+	}
+	InvalidateRect(hwnd, NULL, erase);
+}
+/** \brief subclass of the taskbar hosting our overlay clock to follow size/position/theme changes */
+static LRESULT CALLBACK Window_OverlayTaskbar_Hooked(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) {
+	LRESULT ret;
+	(void)dwRefData;
+	if(message == WM_NCDESTROY)
+		RemoveWindowSubclass(hwnd, Window_OverlayTaskbar_Hooked, uIdSubclass);
+	ret = DefSubclassProc(hwnd, message, wParam, lParam);
+	switch(message) {
+	case WM_WINDOWPOSCHANGED: {
+		const WINDOWPOS* pwp = (const WINDOWPOS*)lParam;
+		if(!(pwp->flags & SWP_NOSIZE) || (m_overlay_popup && !(pwp->flags & SWP_NOMOVE)))
+			PostMessage(gs_hwndClock, CLOCKM_REFRESHTASKBAR, 0, 0);
+		break;}
+	case WM_DISPLAYCHANGE:
+	case 0x02E0: // WM_DPICHANGED
+		PostMessage(gs_hwndClock, CLOCKM_REFRESHCLOCK, 0, 0);
+		break;
+	case WM_SETTINGCHANGE: // light/dark mode switch
+		if(lParam && !wcscmp((const wchar_t*)lParam, L"ImmersiveColorSet"))
+			PostMessage(gs_hwndClock, WM_SYSCOLORCHANGE, 0, 0);
+		break;
+	}
+	return ret;
+}
 //================================================================================================
 //---------------------------------------------------------------------+++--> Initialize the Clock:
 void InitClock(HWND hwnd)   //--------------------------------------------------------------+++-->
 {
-	gs_tray = GetParent(hwnd);
-	gs_taskbar = GetParent(gs_tray);
+	if(m_overlay) {
+		gs_tray = gs_taskbar = gs_overlay_bar;
+	} else {
+		gs_tray = GetParent(hwnd);
+		gs_taskbar = GetParent(gs_tray);
+	}
 	LoadLibrary(L"T-Clock" ARCH_SUFFIX); // self-reference
 	SetupClockAPI(CLOCK_API, NULL); // initialize API
 	GetClientRect(hwnd, &m_rcClock); // use original clock size until we've loaded our settings
 	m_clock_base_width = m_rcClock.right;
 	m_clock_base_height = m_rcClock.bottom;
-	{//"top" margin detection // 2px Win8 default (Vista+)
+	if(m_overlay) {
+		OverlayUpdateMetrics();
+	} else {//"top" margin detection // 2px Win8 default (Vista+)
 		RECT rcBar; GetClientRect(gs_taskbar,&rcBar);
 		if(rcBar.right>rcBar.bottom){//horizontal
 			m_BORDER_MARGIN = rcBar.bottom-m_rcClock.bottom;
@@ -535,8 +698,12 @@ void InitClock(HWND hwnd)   //--------------------------------------------------
 			m_BORDER_MARGIN = rcBar.right-m_rcClock.right;
 		}
 	}
-	// Win 10 1st-anniversary update requires us to hook the tray
-	SetWindowSubclass(gs_tray, Window_ClockTray_Hooked, 0, 0);
+	if(m_overlay) {
+		SetWindowSubclass(gs_taskbar, Window_OverlayTaskbar_Hooked, 0, 0);
+	} else {
+		// Win 10 1st-anniversary update requires us to hook the tray
+		SetWindowSubclass(gs_tray, Window_ClockTray_Hooked, 0, 0);
+	}
 	SetWindowSubclass(hwnd, Window_Clock_Hooked, 0, 0);
 	
 	CreateTip(hwnd); // Create Mouse-Over ToolTip Window & Contents
@@ -560,8 +727,10 @@ static void SelfDestruct(void* user)
 	InvalidateRect(gs_hwndClock, NULL, TRUE);
 	SendMessage(gs_hwndClock, WM_NULL, 0, 0);
 	// refresh primary taskbar
-	InvalidateRect(gs_taskbar, NULL, TRUE);
-	SendMessage(gs_taskbar, WM_SIZE, SIZE_RESTORED, 0);
+	if(!m_overlay) {
+		InvalidateRect(gs_taskbar, NULL, TRUE);
+		SendMessage(gs_taskbar, WM_SIZE, SIZE_RESTORED, 0);
+	}
 	// we could use FreeLibraryAndExitThread on XP+, but this "hack" should be ok for now.
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)FreeLibrary, &__ImageBase, 0, NULL); // die painfully
 }
@@ -583,15 +752,27 @@ void EndClock()   //------------------------------------------------------+++-->
 	
 	for(i=GROUP_TCLOCK_TIMER_BEGIN; i<=GROUP_TCLOCK_TIMER_END; ++i)
 		KillTimer(gs_hwndClock, i);
-	RemoveWindowSubclass(gs_tray, Window_ClockTray_Hooked, 0);
-	RemoveWindowSubclass(gs_hwndClock, Window_Clock_Hooked, 0);
-	// Windows uses timer ID 0 for every-minute drawing
-	// make sure it is set (again)
-	SetTimer(gs_hwndClock, WIN_CLOCK_TIMER_ID, 10*1000, NULL);
-	
+	if(m_overlay) {
+		RemoveWindowSubclass(gs_taskbar, Window_OverlayTaskbar_Hooked, 0);
+		RemoveWindowSubclass(gs_hwndClock, Window_Clock_Hooked, 0);
+	} else {
+		RemoveWindowSubclass(gs_tray, Window_ClockTray_Hooked, 0);
+		RemoveWindowSubclass(gs_hwndClock, Window_Clock_Hooked, 0);
+		// Windows uses timer ID 0 for every-minute drawing
+		// make sure it is set (again)
+		SetTimer(gs_hwndClock, WIN_CLOCK_TIMER_ID, 10*1000, NULL);
+	}
+
 	DestroyClock();
-	EndNewAPI(gs_hwndClock);
-	
+	EndNewAPI(m_overlay ? NULL : gs_hwndClock);
+	if(m_overlay) { // our window and class must be gone before we unload
+		DestroyWindow(gs_hwndClock);
+		if(m_overlay_class) {
+			UnregisterClass(MAKEINTATOM(m_overlay_class), api.hInstance);
+			m_overlay_class = 0;
+		}
+	}
+
 	_beginthread(SelfDestruct, 0, NULL);
 }
 static LRESULT CALLBACK Window_ClockTooltip_Hooked(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData) {
@@ -684,7 +865,10 @@ static LRESULT CALLBACK Window_Clock_Hooked(HWND hwnd, UINT message, WPARAM wPar
 	switch(message){
 	case WM_DESTROY:
 		PostMessage(gs_hwndTClockMain, MAINM_EXPLORER_SHUTDOWN, 0, 0);
-		RemoveWindowSubclass(gs_tray, Window_ClockTray_Hooked, 0);
+		if(m_overlay)
+			RemoveWindowSubclass(gs_taskbar, Window_OverlayTaskbar_Hooked, 0);
+		else
+			RemoveWindowSubclass(gs_tray, Window_ClockTray_Hooked, 0);
 		RemoveWindowSubclass(hwnd, Window_Clock_Hooked, uIdSubclass);
 		DestroyClock();
 		break;
@@ -695,7 +879,7 @@ static LRESULT CALLBACK Window_Clock_Hooked(HWND hwnd, UINT message, WPARAM wPar
 		return ((LRESULT)m_rcClock.bottom << 16) | (LRESULT)m_rcClock.right;
 	case WM_WINDOWPOSCHANGING:{
 		WINDOWPOS* pwp=(WINDOWPOS*)lParam;
-		if(m_bNoClock) break;
+		if(m_bNoClock || m_overlay) break;
 		if(!(pwp->flags&SWP_NOSIZE) && !(pwp->flags&SWP_NOMOVE)){
 			m_clock_base_width = pwp->cx; // keep base size in sync (eg. on "short time" format or DPI change)
 			m_clock_base_height = pwp->cy;
@@ -717,6 +901,8 @@ static LRESULT CALLBACK Window_Clock_Hooked(HWND hwnd, UINT message, WPARAM wPar
 		if(m_bNoClock) break;
 		if(!(pwp->flags&SWP_NOSIZE)){
 			UpdateClockSize();
+			if(m_overlay)
+				ClockRedraw(hwnd, 0);
 		}
 		return 0;}
 	case WM_DWMCOLORIZATIONCOLORCHANGED://forwarded by T-Clock itself
@@ -724,7 +910,7 @@ static LRESULT CALLBACK Window_Clock_Hooked(HWND hwnd, UINT message, WPARAM wPar
 		/* fall through */
 	case WM_THEMECHANGED:
 		if(message == WM_THEMECHANGED) {
-			ReloadXPClockTheme(hwnd);
+			ReloadXPClockTheme();
 			FillClockBG();
 			if(m_HoverState & kHoverAny) // draws on-top
 				FillClockBGHover();
@@ -732,7 +918,12 @@ static LRESULT CALLBACK Window_Clock_Hooked(HWND hwnd, UINT message, WPARAM wPar
 		/* fall through */
 	case WM_SYSCOLORCHANGE:
 		ColorUpdate(m_basecolorFont,m_basecolorBG);
-		InvalidateRect(hwnd,NULL,0);
+		if(m_overlay) { // default colors depend on light/dark mode
+			FillClockBG();
+			if(m_HoverState & kHoverAny)
+				FillClockBGHover();
+		}
+		ClockRedraw(hwnd, 0);
 		break;
 	case WM_TIMECHANGE:
 	case WM_USER+101: {
@@ -743,6 +934,8 @@ static LRESULT CALLBACK Window_Clock_Hooked(HWND hwnd, UINT message, WPARAM wPar
 		ReleaseDC(hwnd, hdc);
 		return 0;}
 	case WM_USER+102: {
+		if(m_overlay) // T-Clock.exe opens Windows 11's calendar itself
+			return 0;
 		if(api.OS >= TOS_WIN10_1) { // emulated click for Win10.1, older OS would require the "click" on the notify area with the clocks coordinates (parent)
 			if(hwnd != m_clock_active)
 				return SendMessage(m_clock_active, message, wParam, lParam);
@@ -791,7 +984,7 @@ static LRESULT CALLBACK Window_Clock_Hooked(HWND hwnd, UINT message, WPARAM wPar
 		SetForegroundWindow(gs_hwndTClockMain); // set T-Clock to foreground so we can open menus, etc.
 		if(m_BlinkState){
 			m_BlinkState=BLINK_NONE;
-			InvalidateRect(gs_hwndClock, NULL, 1);
+			ClockRedraw(gs_hwndClock, 1);
 			PostMessage(gs_hwndTClockMain,MAINM_BLINKOFF,0,0);
 			return 0;
 		}
@@ -813,8 +1006,9 @@ static LRESULT CALLBACK Window_Clock_Hooked(HWND hwnd, UINT message, WPARAM wPar
 		if(!(m_HoverState & kHoverAny)) {
 			m_col = m_col_hover;
 			FillClockBGHover();
-			InvalidateRect(gs_hwndClock, NULL, 0);
-			SendMessage((wParam & WPARAM_SUBCLOCK ? GetParent(hwnd) : gs_taskbar), WM_NCHITTEST, 0, GetMessagePos());
+			ClockRedraw(gs_hwndClock, 0);
+			if(!m_overlay)
+				SendMessage((wParam & WPARAM_SUBCLOCK ? GetParent(hwnd) : gs_taskbar), WM_NCHITTEST, 0, GetMessagePos());
 		}
 		if(message == WM_SETFOCUS) {
 			UINT hover_time;
@@ -862,7 +1056,7 @@ static LRESULT CALLBACK Window_Clock_Hooked(HWND hwnd, UINT message, WPARAM wPar
 		if(!(m_HoverState & kHoverAny)) {
 			m_col = m_col_normal;
 			FillClockBG();
-			InvalidateRect(gs_hwndClock,NULL,0);
+			ClockRedraw(gs_hwndClock, 0);
 		}
 		return 0;
 	/* end of multi-clock shared code */
@@ -870,12 +1064,12 @@ static LRESULT CALLBACK Window_Clock_Hooked(HWND hwnd, UINT message, WPARAM wPar
 //		return HTTRANSPARENT; // Windows' clock uses this
 //		return HTCAPTION; // xD
 		return DefWindowProc(hwnd, message, wParam, lParam);
-	case WM_MOUSEACTIVATE:
-		return MA_ACTIVATE;
+	case WM_MOUSEACTIVATE: // overlay: keep Windows 11's calendar active so we can detect and close it
+		return (m_overlay ? MA_NOACTIVATE : MA_ACTIVATE);
 	case WM_NOTIFY: {
 		UINT code=((LPNMHDR)lParam)->code;
 		if(code==TTN_NEEDTEXTA || code==TTN_NEEDTEXTW) {
-			if(api.OS >= TOS_WIN10_1 && !api.GetInt(L"Tooltip",L"bCustom",0))
+			if(!m_overlay && api.OS >= TOS_WIN10_1 && !api.GetInt(L"Tooltip",L"bCustom",0))
 				return DefSubclassProc(hwnd, message, wParam, lParam);
 			OnTooltipNeedText(code,lParam);
 		}
@@ -898,6 +1092,12 @@ static LRESULT CALLBACK Window_Clock_Hooked(HWND hwnd, UINT message, WPARAM wPar
 		ReadStyleData(hwnd,0); // also creates/updates clock
 		MyDragDrop_Enable(m_droptarget,1); // enable/disable DropFiles on clock
 		SubsCreate();
+		if(m_overlay) {
+			if(m_bNoClock)
+				ShowWindow(hwnd, SW_HIDE);
+			else
+				OverlayReposition();
+		}
 		// "try" to setup our timer on every "manual" clock-refresh
 		if(m_bNoClock) { // kill our timer; setup Windows'
 			KillTimer(hwnd, TCLOCK_TIMER_ID);
@@ -916,23 +1116,65 @@ static LRESULT CALLBACK Window_Clock_Hooked(HWND hwnd, UINT message, WPARAM wPar
 			ReadFormatData(hwnd,1); // also creates/updates clock because of preview
 		/* fall through */
 	case CLOCKM_REFRESHTASKBAR:{ // refresh other elements than clock (somehow required to actually change the clock's size)
-		int alpha = api.GetIntEx((wParam ? L"Preview" : L"Taskbar"), L"AlphaTaskbar", 0);
-		int clear_taskbar = api.GetIntEx(L"Taskbar", L"ClearTaskbar", 0);
+		int alpha, clear_taskbar;
+		if(m_overlay) { // we can't (and don't need to) touch the XAML taskbar, just follow it
+			if(!m_bNoClock) {
+				OverlayUpdateMetrics();
+				UpdateClock(hwnd, NULL); // also repositions
+				ClockRedraw(hwnd, 0);
+			}
+			return 0;
+		}
+		alpha = api.GetIntEx((wParam ? L"Preview" : L"Taskbar"), L"AlphaTaskbar", 0);
+		clear_taskbar = api.GetIntEx(L"Taskbar", L"ClearTaskbar", 0);
 		SetLayeredTaskbar(hwnd, alpha, clear_taskbar);
 		PostMessage(gs_taskbar, WM_SIZE, SIZE_RESTORED, 0);
 		InvalidateRect(gs_taskbar, NULL, 1);
 		return 0;}
+	case CLOCKM_OVERLAY_RECT: { // original clock's position (sent by T-Clock.exe)
+		RECT rc;
+		if(!m_overlay)
+			return 0;
+		if(lParam) {
+			rc.left = (short)LOWORD(wParam);
+			rc.top = (short)HIWORD(wParam);
+			rc.right = rc.left + LOWORD(lParam);
+			rc.bottom = rc.top + HIWORD(lParam);
+		} else
+			memset(&rc, 0, sizeof(rc));
+		if(m_overlay_rc_valid == (lParam ? 1 : 0) && !memcmp(&rc, &m_overlay_rc, sizeof(rc)))
+			return 0; // unchanged
+		m_overlay_rc = rc;
+		m_overlay_rc_valid = (lParam ? 1 : 0);
+		if(!m_bNoClock) {
+			OverlayUpdateMetrics();
+			UpdateClock(hwnd, NULL); // also repositions
+			ClockRedraw(hwnd, 0);
+		}
+		return 0;}
+	case CLOCKM_OVERLAY_BG: // sampled taskbar color (sent by T-Clock.exe)
+		if(!m_overlay)
+			return 0;
+		if(m_overlay_bg_valid == (lParam ? 1 : 0) && m_overlay_bg == (COLORREF)wParam)
+			return 0; // unchanged
+		m_overlay_bg = (COLORREF)wParam;
+		m_overlay_bg_valid = (lParam ? 1 : 0);
+		FillClockBG();
+		if(m_HoverState & kHoverAny)
+			FillClockBGHover();
+		ClockRedraw(hwnd, 0);
+		return 0;
 	case CLOCKM_BLINK: // blink the clock
 		if(wParam)
 			m_BlinkState|=BLINK_HOUR;
 		else
 			m_BlinkState|=BLINK_ON;;
-		InvalidateRect(hwnd, NULL, 1);
+		ClockRedraw(hwnd, 1);
 		return 0;
 	case CLOCKM_BLINKOFF: // stop blinking
 		if(m_BlinkState){
 			m_BlinkState&=~BLINK_ON;
-			InvalidateRect(hwnd,NULL,1);
+			ClockRedraw(hwnd, 1);
 			PostMessage(gs_hwndTClockMain,MAINM_BLINKOFF,0,0);
 		}
 		return 0;
@@ -1113,8 +1355,9 @@ void ReadFormatData(HWND hwnd, int preview)   //---------------------+++-->
 	// update clock if preview
 	if(preview){
 		UpdateClock(hwnd,NULL);
-		InvalidateRect(hwnd, NULL, 0);
-		InvalidateRect(gs_tray, NULL, 1);
+		ClockRedraw(hwnd, 0);
+		if(!m_overlay)
+			InvalidateRect(gs_tray, NULL, 1);
 	}
 }
 //=========================================================================
@@ -1157,8 +1400,9 @@ void ReadStyleData(HWND hwnd, int preview)   //---------------------+++-->
 	m_bMultimon = api.GetInt(L"Desktop", L"Multimon", 1);
 	/// create/update clock
 	UpdateClock(hwnd, hFon);
-	InvalidateRect(hwnd, NULL, 0);
-	InvalidateRect(gs_tray, NULL, 1);
+	ClockRedraw(hwnd, 0);
+	if(!m_overlay)
+		InvalidateRect(gs_tray, NULL, 1);
 }
 
 /*------------------------------------------------
@@ -1231,7 +1475,7 @@ void CALLBACK OnDrawTimer(HWND hwnd, unsigned uMsg, uintptr_t idEvent, unsigned 
 	memcpy(&m_LastTime, &t, sizeof(t));
 	
 	if(bRedraw)
-		InvalidateRect(hwnd,NULL,0);
+		ClockRedraw(hwnd, 0);
 }
 
 void FillClockBG()
@@ -1243,7 +1487,13 @@ void FillClockBG()
 		COLORREF ref;
 	} col;
 	if(!m_colorBG_start) return;
-	if(m_colBG.ref==TCOLOR(TCOLOR_DEFAULT)){
+	if(m_overlay && m_colBG.ref==TCOLOR(TCOLOR_DEFAULT)){
+		// cover the original clock using the taskbar's color
+		if(m_overlay_bg_valid)
+			col.ref = m_overlay_bg & 0x00FFFFFF;
+		else
+			col.ref = (IsSystemLightTheme() ? 0x00F3F3F3 : 0x00202020);
+	}else if(m_colBG.ref==TCOLOR(TCOLOR_DEFAULT)){
 		if(IsXPThemeActive()){
 			DrawXPClockBackground(gs_hwndClock,m_hdcClockBG,&m_rcClock);
 			return;
@@ -1254,6 +1504,8 @@ void FillClockBG()
 	// fill with color (Win8 uses ~0x37 alpha)
 //	col.ref=0x37000000;//Win8 like
 	alpha=255-col.quad.rgbReserved;
+	if(m_overlay && !alpha)
+		alpha = 1; // fully transparent pixels of layered windows are click-through
 	col.ref=alpha<<24|(col.quad.rgbBlue*alpha/255)|(col.quad.rgbGreen*alpha/255)<<8|(col.quad.rgbRed*alpha/255)<<16;
 	for(color=m_colorBG_start; color<m_colorBG_end; ++color)
 		*(unsigned*)color=col.ref;
@@ -1261,6 +1513,15 @@ void FillClockBG()
 void FillClockBGHover()
 {
 	if(!m_colorBG_start) return;
+	if(m_overlay) { // Windows 11 like: lighten the background a little
+		RGBQUAD* color;
+		for(color=m_colorBG_start; color<m_colorBG_end; ++color) {
+			color->rgbBlue = (BYTE)(color->rgbBlue + (color->rgbReserved - color->rgbBlue) * 24 / 255);
+			color->rgbGreen = (BYTE)(color->rgbGreen + (color->rgbReserved - color->rgbGreen) * 24 / 255);
+			color->rgbRed = (BYTE)(color->rgbRed + (color->rgbReserved - color->rgbRed) * 24 / 255);
+		}
+		return;
+	}
 	if(IsXPThemeActive()) {
 		DrawXPClockHover(gs_hwndClock,m_hdcClockBG,&m_rcClock);
 	}
@@ -1277,19 +1538,28 @@ void CalculateClockTextPosition(){
 		m_rcClock.bottom-=m_BORDER_MARGIN;//2px top
 		if(m_height){//user-defined height
 			m_rcClock.bottom=m_textheight;
-		}else
+		}else if(!m_overlay) // (overlay is positioned within the margin)
 			textheight+=m_BORDER_MARGIN; // ignore vertical margin on center calculation
 		m_rcClock.right=abs((int)(cos_*m_textwidth))+abs((int)(sin_*m_textheight)) + m_textpadding;
 	}else{
 		m_rcClock.right-=m_BORDER_MARGIN;//2px top
 		if(m_width){//user-defined height
 			m_rcClock.right=m_textwidth;
-		}else
+		}else if(!m_overlay)
 			textwidth+=m_BORDER_MARGIN; // ignore horizontal margin on center calculation
 		m_rcClock.bottom=abs((int)(cos_*m_textheight))+abs((int)(sin_*m_textwidth)) + m_textpadding;
 	}
 	m_rcClock.right+=m_width;
 	m_rcClock.bottom+=m_height;
+	if(m_overlay && m_overlay_rc_valid){ // at least cover the original clock
+		if(m_bHorizontalTaskbar){
+			if(m_rcClock.right < m_overlay_rc.right-m_overlay_rc.left)
+				m_rcClock.right = m_overlay_rc.right-m_overlay_rc.left;
+		}else{
+			if(m_rcClock.bottom < m_overlay_rc.bottom-m_overlay_rc.top)
+				m_rcClock.bottom = m_overlay_rc.bottom-m_overlay_rc.top;
+		}
+	}
 	if(m_rcClock.right<5) m_rcClock.right=5;
 	if(m_rcClock.bottom<5) m_rcClock.bottom=5;
 	/// position
@@ -1382,6 +1652,10 @@ int UpdateClock(HWND hwnd, HFONT fnt)
 			DeleteObject(SelectObject(m_hdcClock,fnt));
 	}
 	CalculateClockTextSize();
+	if(m_overlay){
+		OverlayReposition();
+		return 1;
+	}
 	// height-only change is buggy without this +1
 	SetWindowPos(hwnd, HWND_TOP, 0,0, m_rcClock.right+1, m_rcClock.bottom, SWP_NOACTIVATE|SWP_NOZORDER|SWP_NOMOVE|SWP_NOCOPYBITS);
 	return 1;
@@ -1464,6 +1738,23 @@ void DrawClockSub(HDC hdc, SYSTEMTIME* pt, int beat100)
 		}else{
 			*(unsigned*)color=*(unsigned*)back;
 		}
+	}
+	if(m_overlay){ // layered window; hdc unused
+		POINT src = {0, 0};
+		SIZE size;
+		BLENDFUNCTION blend = {AC_SRC_OVER, 0, 255, AC_SRC_ALPHA};
+		if(m_BlinkState && !(pt->wSecond%2)){ // invert (premultiplied)
+			for(color=m_color_start; color<m_color_end; ++color){
+				color->rgbBlue = color->rgbReserved - (color->rgbBlue>color->rgbReserved ? color->rgbReserved : color->rgbBlue);
+				color->rgbGreen = color->rgbReserved - (color->rgbGreen>color->rgbReserved ? color->rgbReserved : color->rgbGreen);
+				color->rgbRed = color->rgbReserved - (color->rgbRed>color->rgbReserved ? color->rgbReserved : color->rgbRed);
+			}
+		}
+		size.cx = m_rcClock.right;
+		size.cy = m_rcClock.bottom;
+		UpdateLayeredWindow(gs_hwndClock, NULL, NULL, &size, m_hdcClock, &src, 0, &blend, ULW_ALPHA);
+		(void)hdc;
+		return;
 	}
 	if(!m_BlinkState || pt->wSecond%2){
 //		BLENDFUNCTION fnc={AC_SRC_OVER,0,255,AC_SRC_ALPHA};

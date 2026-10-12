@@ -21,6 +21,7 @@ extern HWND gs_hwndClock;      /**< \brief primary clock hwnd \b [shared] \remar
 extern HWND gs_tray;           /**< \brief primary clock's tray \b [shared] \remark initialized once fully injected ( prefer \c gs_taskbar ) \sa gs_hwndClock, gs_taskbar */
 extern HWND gs_taskbar;        /**< \brief primary clock's taskbar \b [shared] \remark initialized once fully injected \sa gs_hwndClock, gs_tray */
 extern HWND gs_hwndCalendar;   /**< \brief calendar state \b [shared] \sa TClockAPI::GetCalendar() */
+extern HWND gs_overlay_bar;    /**< \brief taskbar hosting our overlay clock if it has no classic clock (Windows 11), otherwise \c NULL \b [shared] */
 
 extern const wchar_t* kConfigName;   /**< ini file name (also used for mutexes) */
 
@@ -39,6 +40,9 @@ void DrawClock(HDC hdc);
 void GetDisplayTime(SYSTEMTIME* pt, int* beat100);
 void FillClockBG();
 void FillClockBGHover();
+
+// clock_color.c
+int IsSystemLightTheme(); ///< Windows 10 1903+ light taskbar/system theme
 
 // font.c
 HFONT CreateMyFont(const wchar_t* fontname, int fontsize, LONG weight, LONG italic, int angle, BYTE guality);

@@ -159,10 +159,10 @@ BEGIN
     CTEXT           "White", IDC_ABT_StoicJoker, 261, 19, 38, 8, SS_CENTER
     CTEXT           "Tiger", IDC_ABT_StoicJoker2, 261, 28, 38, 8, SS_CENTER
     RTEXT           "web:", IDC_ABT_WEB, 64, 13, 29, 9, SS_RIGHT
-    RTEXT           "email:", IDC_ABT_MAIL, 64, 24, 29, 9, SS_RIGHT
+    RTEXT           "issues:", IDC_ABT_MAIL, 64, 24, 29, 9, SS_RIGHT
     RTEXT           "forum:", IDC_ABT_FORUM, 64, 35, 29, 9, SS_RIGHT
-    LTEXT           "https://github.com/White-Tiger/T-Clock", IDC_ABT_WEBuri, 95, 13, 129, 9, SS_LINK
-    LTEXT           "T-Clock@WhiteTiger.e4ward.com", IDC_ABT_MAILuri, 95, 24, 129, 9, SS_LINK
+    LTEXT           "https://github.com/Balls0fSteel/T-Clock-ng", IDC_ABT_WEBuri, 95, 13, 129, 9, SS_LINK
+    LTEXT           "https://github.com/Balls0fSteel/T-Clock-ng/issues", IDC_ABT_MAILuri, 95, 24, 129, 9, SS_LINK
     LTEXT           "http://donationcoder.com/forum/?board=324.0", IDC_ABT_FORUMuri, 95, 35, 129, 9, SS_LINK
     AUTOCHECKBOX    "Regularly check for updates", IDC_UPDATE_RELEASE, 29, 47, 105, 8
     AUTOCHECKBOX    "include beta versions", IDC_UPDATE_BETA, 142, 46, 83, 8

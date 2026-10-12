@@ -200,7 +200,7 @@ INT_PTR CALLBACK Page_Mouse(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		OnInit(hDlg);
 		return TRUE;}
 	case WM_DESTROY:
-		OnDestroy(hDlg);
+		OnDestroy();
 		break;
 	case WM_COMMAND:{
 		HWND control = (HWND)lParam;
