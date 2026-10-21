@@ -1,8 +1,7 @@
-537|537
-2.5.0|2.5.0
-|first T-Clock-ng release
-+ Windows 11 (22H2+/24H2) taskbar support via an overlay clock
-+ x86 and x64 builds with current Visual Studio
-* update checker and About page point to github.com/Balls0fSteel/T-Clock-ng
-! fixed build with C23 compilers (GCC 15+)
+539|539
+2.5.1|2.5.1
+|DukeCorp1996 branding and bug fixes
++ About page: DukeCorp1996 website and donation links, White-Tiger credited
+! Windows 11: fixed a possible crash when opening the calendar failed
+! Windows 11: fixed duplicate helper threads after an explorer restart
 |same as stable
