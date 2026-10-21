@@ -3,6 +3,36 @@
 All notable changes of the **T-Clock-ng** fork (based on [White-Tiger/T-Clock](https://github.com/White-Tiger/T-Clock) "T-Clock Redux" 2.4.4).
 Timestamps: `YYYY-MM-DD_HHMMSS_epoch` (local time).
 
+## 2026-10-21_224910_1792615750 — Release v2.5.1
+
+### Changed
+- Version bumped to **2.5.1 Release** (revision 539; `AutoVersion --git . -D "MAJOR=2;MINOR=5;BUILD=1;STATUS=3;REVISION=539"`).
+- The v2.5.0 GitHub release and tag were deleted: its About page still showed White-Tiger's logo and name as if
+  they were the author of this build. v2.5.1 replaces it.
+
+## 2026-10-21_224910_1792615750 — DukeCorp1996 branding, Windows 11 helper fixes
+
+### Changed
+- About page: the logo box top right shows T-Clock's clock icon and "DukeCorp / 1996" instead of White-Tiger's
+  tiger logo and name (`white-tiger.ico` removed from the repo). The Stoic Joker and Christmas easter eggs are kept.
+- About page links: web (GitHub repo), issues, **site** (`https://dukecorp1996.x35.in`) and **donate**
+  (`https://dukecorp1996.x35.in/donations.html`). The dead donationcoder.com forum link was removed.
+  The new labels got their own resource IDs (`IDC_ABT_SITE`, `IDC_ABT_DONATE`, …; `IDC_ABT_TCLOCK` is now 611).
+- About history text: "T-Clock-ng by DukeCorp1996 continues White-Tiger's T-Clock Redux (2014-2018) on Windows 11."
+- File properties: CompanyName "DukeCorp1996" (was "-") for Clock(64).exe, T-Clock(64).dll, Options.exe,
+  XPCalendar.exe.
+- README: credits White-Tiger (and earlier authors) up front, adds website/donation/issue links, download badges
+  point to this fork (White-Tiger's releases linked as the original 2.4.4), removed the dead forum/e-mail support.
+- `.github/FUNDING.yml`: GitHub's "Sponsor" button links to the donation page.
+
+### Fixed (code review of the Windows 11 overlay helper, `src/Clock/win11.c`)
+- `InvokeCalendar()` released the UIA tree walker twice when the original clock's Invoke pattern was found but
+  `Invoke()` failed (then used the Win+N fallback). Double COM release, could crash Clock.exe.
+- Helper thread restart: `Win11Overlay_Stop()` waits 5 s; if a thread was stuck (eg. UIA calls into a hung or
+  restarting explorer), the next `Win11Overlay_Start()` reset the shared stop flag and revived it, leaving two
+  helper threads running. Each thread now has its own generation number and exits once it's outdated.
+- `ClockNameScore()`: an empty time string (if `GetTimeFormat()` fails) matched every UI element's name.
+
 ## 2026-10-21_223300_1792614780 — Release v2.5.0
 
 ### Changed

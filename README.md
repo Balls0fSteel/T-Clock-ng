@@ -2,8 +2,16 @@ T-Clock-ng
 ==========
 [![build](https://github.com/Balls0fSteel/T-Clock-ng/actions/workflows/build.yml/badge.svg)](https://github.com/Balls0fSteel/T-Clock-ng/actions/workflows/build.yml)
 
-**T-Clock-ng** is a fork of [White-Tiger's T-Clock Redux](https://github.com/White-Tiger/T-Clock) (last released 2018)
-brought up to date for **Windows 11**:
+**T-Clock-ng** by [DukeCorp1996](https://dukecorp1996.x35.in/) is a fork of
+[White-Tiger's T-Clock Redux](https://github.com/White-Tiger/T-Clock) (last released 2018) brought up to date for
+**Windows 11**. All credit for T-Clock Redux goes to White-Tiger, and before them to Stoic Joker, Two_toNe and Kazubon.
+
+* **Download:** [latest release](https://github.com/Balls0fSteel/T-Clock-ng/releases/latest)
+* **Website:** [dukecorp1996.x35.in](https://dukecorp1996.x35.in/)
+* **Support the development:** [donate](https://dukecorp1996.x35.in/donations.html)
+* **Bugs and feature requests:** [issue tracker](https://github.com/Balls0fSteel/T-Clock-ng/issues)
+
+What's new compared to T-Clock Redux:
 * works with the stock Windows 11 taskbar (22H2/23H2/24H2), which no longer has the classic clock window T-Clock used to hook
 * still works with classic taskbars (Windows 7–10, or Windows 11 with StartAllBack / ExplorerPatcher)
 * builds with current Visual Studio (2017–2026) and MinGW-w64 GCC; GitHub Actions CI
@@ -35,6 +43,7 @@ automatically sampled background color.
 ---
 
 ### Original T-Clock Redux readme
+<sub>(by White-Tiger, kept for history; download and support links now point to T-Clock-ng)</sub>  
 <sub>(click picture below for full size)</sub>
 ![clockshowcase](https://cloud.githubusercontent.com/assets/1467733/4608572/71b48156-5283-11e4-960f-b0415b5b7cec.png)  
 **T-Clock Redux** is an enhanced fork of [Stoic Joker's T-Clock 2010](http://www.stoicjoker.com/TClock/)  
@@ -46,10 +55,9 @@ If you don't mind to read lots of text, and want to know more about T-Clock and 
 
 
 ### Downloads *(binaries)*
-* [![all releases](https://img.shields.io/badge/ALL-RELEASES-brightgreen.svg?logo=github&style=flat-square) ![](https://img.shields.io/github/downloads/White-Tiger/T-Clock/total.svg?style=flat-square)](//github.com/White-Tiger/T-Clock/releases)
-* [![stable](https://img.shields.io/github/release/White-Tiger/T-Clock.svg?label=STABLE&logo=github&style=flat-square) ![](https://img.shields.io/github/downloads/White-Tiger/T-Clock/latest/total.svg?style=flat-square) ![](https://img.shields.io/github/release-date/White-Tiger/T-Clock.svg?style=flat-square)](//github.com/White-Tiger/T-Clock/releases/latest)
-* [![beta](https://img.shields.io/github/release/White-Tiger/T-Clock/all.svg?label=BETA&logo=github&style=flat-square) ![](https://img.shields.io/github/downloads-pre/White-Tiger/T-Clock/latest/total.svg?style=flat-square) ![](https://img.shields.io/github/release-date-pre/White-Tiger/T-Clock.svg?style=flat-square)](//github.com/White-Tiger/T-Clock/releases)
-* [![nightly](https://img.shields.io/badge/NIGHTLY-for_testing_only-ff69b4.svg?logo=travis&style=flat-square) ![](https://img.shields.io/github/commits-since/White-Tiger/T-Clock/latest.svg?style=flat-square) ![](https://img.shields.io/github/last-commit/White-Tiger/T-Clock.svg?style=flat-square)](//drive.google.com/open?id=1m18Jb-eZya6to3NsXUlZeC2ITjXdM7IU)
+* [![all releases](https://img.shields.io/badge/ALL-RELEASES-brightgreen.svg?logo=github&style=flat-square) ![](https://img.shields.io/github/downloads/Balls0fSteel/T-Clock-ng/total.svg?style=flat-square)](//github.com/Balls0fSteel/T-Clock-ng/releases)
+* [![stable](https://img.shields.io/github/release/Balls0fSteel/T-Clock-ng.svg?label=STABLE&logo=github&style=flat-square) ![](https://img.shields.io/github/downloads/Balls0fSteel/T-Clock-ng/latest/total.svg?style=flat-square) ![](https://img.shields.io/github/release-date/Balls0fSteel/T-Clock-ng.svg?style=flat-square)](//github.com/Balls0fSteel/T-Clock-ng/releases/latest)
+* Original T-Clock Redux releases (up to 2.4.4): [White-Tiger/T-Clock](//github.com/White-Tiger/T-Clock/releases)
 
 #### Differences to Stoic Joker's T-Clock 2010 [Build 95/98](http://www.donationcoder.com/forum/index.php?topic=21944.0)
 - [x] + supports Win10 with 1st-Anniversary update *(v2.4.1)*
@@ -104,9 +112,8 @@ If you don't mind to read lots of text, and want to know more about T-Clock and 
 * Requires: [Microsoft Visual C++ 2010 Redistributable](http://microsoft.com/en-us/download/details.aspx?id=26999) (install **both** 32bit `vcredist_x86` +  64bit `vcredist_x64` **on 64bit** OS)
 
 ### Support
-* [Forum](http://donationcoder.com/forum/?board=324)
-* [Issue Tracker](//github.com/White-Tiger/T-Clock/issues)
-* or via email from T-Clock's about screen *(just click on it)*
+* [Issue Tracker](//github.com/Balls0fSteel/T-Clock-ng/issues) *(also linked from T-Clock's About page)*
+* [Website](https://dukecorp1996.x35.in/) and [donations](https://dukecorp1996.x35.in/donations.html)
 
 ### License
 * GPLv2 ? *(license is currently unknown, needs further research)*

@@ -57,7 +57,7 @@ INT_PTR CALLBACK Page_About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		break;}
 	case WM_CTLCOLORSTATIC:{
 		int id=GetDlgCtrlID((HWND)lParam);
-		if(id==IDC_ABT_WEBuri || id==IDC_ABT_MAILuri || id==IDC_ABT_FORUMuri) {
+		if(id==IDC_ABT_WEBuri || id==IDC_ABT_MAILuri || id==IDC_ABT_SITEuri || id==IDC_ABT_DONATEuri) {
 			return LinkControl_OnCtlColorStatic(hDlg, wParam, lParam);
 		}
 		break;}
@@ -167,7 +167,8 @@ static void OnInit(HWND hDlg)   //----------------------------------------------
 	
 	LinkControl_Setup(GetDlgItem(hDlg,IDC_ABT_WEBuri), LCF_HTTPS, NULL);
 	LinkControl_Setup(GetDlgItem(hDlg,IDC_ABT_MAILuri), LCF_SIMPLE, L"https://github.com/Balls0fSteel/T-Clock-ng/issues");
-	LinkControl_Setup(GetDlgItem(hDlg,IDC_ABT_FORUMuri), LCF_SIMPLE, NULL);
+	LinkControl_Setup(GetDlgItem(hDlg,IDC_ABT_SITEuri), LCF_HTTPS, NULL);
+	LinkControl_Setup(GetDlgItem(hDlg,IDC_ABT_DONATEuri), LCF_SIMPLE, L"https://dukecorp1996.x35.in/donations.html");
 	
 	CheckDlgButton(hDlg, IDC_STARTUP, IsStartupAdded());
 }

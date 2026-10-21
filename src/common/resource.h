@@ -122,13 +122,15 @@
 #define IDC_ABT_StoicJoker2             602
 #define IDC_ABT_WEB                     603
 #define IDC_ABT_MAIL                    604
-#define IDC_ABT_FORUM                   605
-#define GROUP_ABT_B_END                 IDC_ABT_FORUM
+#define IDC_ABT_SITE                    605
+#define IDC_ABT_DONATE                  606
+#define GROUP_ABT_B_END                 IDC_ABT_DONATE
 /* end group */
-#define IDC_ABT_WEBuri                  606
-#define IDC_ABT_MAILuri                 607
-#define IDC_ABT_FORUMuri                608
-#define IDC_ABT_TCLOCK                  609
+#define IDC_ABT_WEBuri                  607
+#define IDC_ABT_MAILuri                 608
+#define IDC_ABT_SITEuri                 609
+#define IDC_ABT_DONATEuri               610
+#define IDC_ABT_TCLOCK                  611
 #define IDC_LOGGING                     666 ///< debug logging checkbox (if \c LOGGING is defined)
 #define IDC_QMEN_GROUP1                 700 /* group */
 #define IDC_QMEN_EXITWIN                701 /* group_1 */

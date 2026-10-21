@@ -39,7 +39,7 @@ VS_VERSION_INFO VERSIONINFO
         BLOCK "000004b0"
         {
             VALUE "Comments", ""
-            VALUE "CompanyName", "-"
+            VALUE "CompanyName", "DukeCorp1996"
             VALUE "FileDescription", "T-Clock Calendar"
             VALUE "FileVersion", VER_SHORT " #" STR(VER_REVISION)
             VALUE "InternalName", "XPCalendar.exe"

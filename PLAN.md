@@ -1,9 +1,11 @@
 # PLAN — T-Clock-ng
 
-Last updated: 2026-10-21_223300_1792614780
+Last updated: 2026-10-21_224910_1792615750
 
 ## Current work
-- v2.5.0 released (first T-Clock-ng release: Windows 11 overlay clock, modern MSVC builds, fork URLs).
+- v2.5.1 released: DukeCorp1996 branding (About page, file properties, README, donation links), Windows 11 helper
+  fixes. v2.5.0 release/tag deleted (it still showed White-Tiger's branding).
+- [ ] Check the new About page layout by eye (4 link rows, "DukeCorp 1996" under the logo, history text not cut off).
 
 ## Next steps
 - [x] Overlay mode on the stock Windows 11 24H2 taskbar: UIA lookup, child window above XAML, accent-color
@@ -32,6 +34,9 @@ Last updated: 2026-10-21_223300_1792614780
 - Background as a sampled strip instead of a single color (gradient taskbars).
 
 ## Known TODOs
+- If creating the overlay clock fails inside explorer (`CreateOverlayClock()` returns NULL), the hook just logs it;
+  Clock.exe never gets `MAINM_CLOCKINIT` and shows nothing. It should report an error / fall back.
+- An optional custom DukeCorp1996 logo icon for the About page (currently reuses `Clock.ico`).
 - `src/common/version.h` and `src/common/AutoVersion.exe` are regenerated/rebuilt by every MSVC Win32 build;
   don't commit them accidentally.
 - `src/sign-n-zip.bat` still references Travis/AppVeyor variables and an external signing setup (optional, unused by CI).

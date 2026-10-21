@@ -23,7 +23,7 @@ static const GUID kIID_IUIAutomationInvokePattern = {0xfb377fbe,0x8ea6,0x46d5,{0
 
 static HANDLE m_thread = NULL;
 static HANDLE m_wake = NULL; ///< auto-reset event to wake the helper thread
-static volatile LONG m_stop = 0;
+static volatile LONG m_generation = 0; ///< changed to stop the helper thread (a thread that didn't stop in time can't be revived by the next start)
 static volatile LONG m_calendar = 0; ///< pending calendar requests
 static HWND m_clock = NULL; ///< our overlay clock
 
@@ -55,8 +55,8 @@ static void DigitsOnly(const wchar_t* in, wchar_t* out, size_t out_size) {
  * \return 0 = no match, 1 = contains current time, 2 = time and year */
 static int ClockNameScore(const wchar_t* name, const wchar_t* time_digits, const wchar_t* time_digits_prev, const wchar_t* year_digits) {
 	wchar_t digits[128];
-	if(!name || !*name)
-		return 0;
+	if(!name || !*name || !*time_digits)
+		return 0; // (an empty time would match everything)
 	DigitsOnly(name, digits, _countof(digits));
 	if(!wcsstr(digits, time_digits) && !wcsstr(digits, time_digits_prev))
 		return 0;
@@ -268,12 +268,13 @@ static void InvokeCalendar(Win11State* self) {
 				HRESULT hr = IUIAutomationInvokePattern_Invoke(invoke);
 				IUIAutomationInvokePattern_Release(invoke);
 				IUIAutomationElement_Release(element);
-				if(walker)
-					IUIAutomationTreeWalker_Release(walker);
-				if(SUCCEEDED(hr))
-					return;
 				element = NULL;
-				break;
+				if(SUCCEEDED(hr)) {
+					if(walker)
+						IUIAutomationTreeWalker_Release(walker);
+					return;
+				}
+				break; // use the fallback below (walker is released after the loop)
 			}
 			if(walker)
 				IUIAutomationTreeWalker_GetParentElement(walker, element, &parent);
@@ -302,7 +303,7 @@ static DWORD WINAPI Win11Thread(void* param) {
 	Win11State self;
 	HRESULT hr_com;
 	unsigned fails = 0;
-	(void)param;
+	const LONG generation = (LONG)(intptr_t)param;
 	memset(&self, 0, sizeof(self));
 	// use physical pixels like the taskbar does (we're only "system aware")
 	pSetThreadDpiAwarenessContext = (SetThreadDpiAwarenessContext_t)GetProcAddress(GetModuleHandleA("user32"), "SetThreadDpiAwarenessContext");
@@ -313,7 +314,7 @@ static DWORD WINAPI Win11Thread(void* param) {
 		self.uia = NULL;
 	DebugLog(0, "win11: helper started (UIA: %s)", (self.uia ? "yes" : "no"));
 
-	while(!m_stop) {
+	while(generation == m_generation) {
 		RECT old_rc = self.rc;
 		int found;
 		if(!IsWindow(m_clock))
@@ -366,7 +367,7 @@ int Win11Overlay_IsOverlay(HWND clock) {
 void Win11Overlay_Stop() {
 	if(!m_thread)
 		return;
-	InterlockedExchange(&m_stop, 1);
+	InterlockedIncrement(&m_generation);
 	SetEvent(m_wake);
 	if(WaitForSingleObject(m_thread, 5000) == WAIT_TIMEOUT)
 		DebugLog(0, "win11: helper didn't stop in time");
@@ -382,9 +383,8 @@ void Win11Overlay_Start(HWND clock) {
 	if(!m_wake)
 		m_wake = CreateEvent(NULL, FALSE, FALSE, NULL);
 	m_clock = clock;
-	m_stop = 0;
 	m_calendar = 0;
-	m_thread = CreateThread(NULL, 0, Win11Thread, NULL, 0, NULL);
+	m_thread = CreateThread(NULL, 0, Win11Thread, (void*)(intptr_t)m_generation, 0, NULL);
 }
 
 int Win11Overlay_ToggleCalendar() {

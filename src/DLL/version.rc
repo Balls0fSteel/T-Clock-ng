@@ -47,7 +47,7 @@ BEGIN
         BLOCK "000004b0"
         BEGIN
             VALUE "Comments", "T-Clock tray-""Hook"""
-            VALUE "CompanyName", "-"
+            VALUE "CompanyName", "DukeCorp1996"
             VALUE "FileDescription", "T-Clock-ng DLL"
             VALUE "FileVersion", VER_SHORT " #" STR(VER_REVISION)
             VALUE "InternalName", "Clock.dll"
