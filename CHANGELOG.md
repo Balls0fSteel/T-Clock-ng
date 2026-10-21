@@ -3,6 +3,16 @@
 All notable changes of the **T-Clock-ng** fork (based on [White-Tiger/T-Clock](https://github.com/White-Tiger/T-Clock) "T-Clock Redux" 2.4.4).
 Timestamps: `YYYY-MM-DD_HHMMSS_epoch` (local time).
 
+## 2026-10-21_223300_1792614780 — Release v2.5.0
+
+### Changed
+- Version bumped from 2.4.4 RC to **2.5.0 Release** (revision 537), the first T-Clock-ng release. The minor bump
+  marks Windows 11 support. `src/common/version.h` was regenerated with `AutoVersion --git . -D "MAJOR=2;MINOR=5;BUILD=0;STATUS=3;REVISION=537"`.
+  `REVISION` is set to the commit count of the release commit, because tagged CI builds skip AutoVersion
+  (`AUVER_IF_NOT=RELEASE_TAG`) and use the committed header as-is.
+- `src/version` (update checker feed): stable and beta both point to 2.5.0 / revision 537.
+- Tag `v2.5.0`: the GitHub Actions workflow builds x86 + x64 and publishes the GitHub Release with the zip.
+
 ## 2026-10-12_170447_1791817487 — Product renamed to T-Clock-ng everywhere
 
 ### Changed

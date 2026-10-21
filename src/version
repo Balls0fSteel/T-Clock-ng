@@ -1,10 +1,8 @@
-57|492
-2.1.0|2.4.4
-|(first release)
-|release candidate
-+ added "Restart Explorer" option to T-Clock's extended context menu (hold down Shift or Ctrl)
-+ added /restart-explorer and /exit-explorer commandline arguments
-+ added Lock and Sleep/Hibernate to "Exit Windows"
-! fixed 'Wi' (ISO week number) and 'wi' (numeric day of week) formats
-! fixed known Clock positioning issues (regressions from initial Windows 10 support)
-! fixed Windows 10 CU's "Ink Workspace" button on multi-monitor setups
+537|537
+2.5.0|2.5.0
+|first T-Clock-ng release
++ Windows 11 (22H2+/24H2) taskbar support via an overlay clock
++ x86 and x64 builds with current Visual Studio
+* update checker and About page point to github.com/Balls0fSteel/T-Clock-ng
+! fixed build with C23 compilers (GCC 15+)
+|same as stable

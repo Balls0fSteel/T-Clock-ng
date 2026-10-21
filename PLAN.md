@@ -1,9 +1,9 @@
 # PLAN — T-Clock-ng
 
-Last updated: 2026-10-12_164546_1791816346
+Last updated: 2026-10-21_223300_1792614780
 
 ## Current work
-- Windows 11 support (branch `win11`): overlay clock for the XAML taskbar, build modernization, fork URLs.
+- v2.5.0 released (first T-Clock-ng release: Windows 11 overlay clock, modern MSVC builds, fork URLs).
 
 ## Next steps
 - [x] Overlay mode on the stock Windows 11 24H2 taskbar: UIA lookup, child window above XAML, accent-color
@@ -13,7 +13,9 @@ Last updated: 2026-10-12_164546_1791816346
 - [ ] Overlay is right-aligned and can be wider than the original clock (covers part of the next tray icon with
       long formats); consider shrinking the default format/padding on Windows 11.
 - [ ] Full MinGW build (`mingw32-make`, needs `pacman -S mingw-w64-x86_64-make` + i686 toolchain for 32-bit).
-- [ ] First tagged release from GitHub Actions; bump `src/version` (update checker) when releasing.
+- [x] First tagged release from GitHub Actions: v2.5.0 (2026-10-21).
+- Release checklist: regenerate `version.h` with AutoVersion (`-D "MAJOR=…;MINOR=…;BUILD=…;STATUS=3;REVISION=<commit
+  count of the release commit>"`), update `src/version`, commit, tag `vX.Y.Z`, push the tag.
 
 ## Open questions
 - (resolved 2026-10-12: product renamed to T-Clock-ng; settings key `Stoic Joker's\T-Clock 2010` kept)
